@@ -8,7 +8,7 @@ import { FaHome,FaList,FaUsers,FaUser,FaChartLine,FaFileAlt } from 'react-icons/
 import { MdFolder,MdAssignment,MdLibraryBooks } from 'react-icons/md';
 
 const Sidebar = () => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const toggleExpand = () => setIsExpanded(!isExpanded);
 
     const navItems = [
