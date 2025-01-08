@@ -1,0 +1,28 @@
+.scroll-area{
+    flex-grow : 1;
+    height : 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-top : 0.5px solid rgba(128, 128, 128, 0.826);
+    position: relative;
+}
+
+.nav-item + .nav-item{
+    margin-top: 2em;
+}
+::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(128, 128, 128, 0.5);
+    border-radius: 4px;
+  }
+    ::-webkit-scrollbar-track:hover {
+        background-color: rgba(0, 0, 0, 0.1);
+    }  
+
+@media (max-width: 1023.9px){
+    .sidebar{
+        display: none;
+    }
+}

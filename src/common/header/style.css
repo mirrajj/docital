@@ -1,0 +1,11 @@
+.container{
+    width : 95%;
+    
+}
+.icon{
+    @apply size-5;
+    color : #34A853;
+}
+.icon + .icon {
+    @apply ml-7;
+}

@@ -5,7 +5,23 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      borderWidth : { '3' : '3px' ,},
+      colors: {
+        'primary': '#38a169',
+        'primaryDark': '#17612B',
+        'primaryLight': '#16A34A',
+        'primaryLighter': '#34A853',
+      },
+      boxShadow : {
+        'darker' : '4px 2px 11px 1px rgba(0, 0, 0, 0.44)',
+        'dark' : '4px 0px 4px 0px rgba(0, 0, 0, 0.25)',
+        'light' : '0px 0px 4px 1px rgba(0, 0, 0, 0.25)'
+      },
+      backgroundImage : {
+        'sidebar-gradient' : 'linear-gradient(to bottom, #17612b 9%, #16a34a 33%, #34a853 62%, #ffffff 100%)',
+      }
+    },
   },
   plugins: [],
 }
