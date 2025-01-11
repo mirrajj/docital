@@ -1,6 +1,22 @@
-/* #root {
-  max-width: 1280px;
+#root {
+  /* max-width: 1280px; */
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-} */
+  background-color : #f5f5f5;
+  min-height: 100vh;
+}
+.form-group{
+  margin: 10px auto;
+  max-width: 400px;
+  display : flex;
+  justify-content : space-between;
+  height: 2em;
+}
+.no-scroll{
+  overflow: hidden;
+  background-color: aquamarine;
+}
+@media (min-width : 1024px){
+  .form-group{
+    margin : 20px auto;
+  }
+}

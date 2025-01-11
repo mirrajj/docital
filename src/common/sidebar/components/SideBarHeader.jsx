@@ -5,10 +5,10 @@ const SideBarHeader = ({isExpanded}) => {
     <>
     
       {isExpanded ? 
-      <div className='w-full shadow-darker'>
+      <div className='w-full shadow-darker mt-2'>
         <img src='/images/sidebar_header.png' alt='docital logo' className='w-full'/>
       </div> : 
-      <div className='w-full shadow-darker'>
+      <div className='w-full shadow-darker mt-2'>
         <img src='/images/sidebar_collapse_logo.png' alt='docital logo' className='w-full'/>
       </div>
     }

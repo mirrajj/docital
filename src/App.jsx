@@ -5,17 +5,22 @@ import './App.css'
 import Sidebar from './common/sidebar'
 import Nav from './common/navigation'
 import AdminLayout from './layout/AdminLayout'
+import Task from './pages/tasks'
+import { DataProvider } from './utils/DataContext'
 
 function App() {
 
 
   return (
-    <div className='App'>
-      {/* <MobileHeader /> */}
-      {/* <Sidebar /> */}
-      {/* <Nav /> */}
-      <AdminLayout><p>something in the layout</p></AdminLayout>
-    </div>
+    <DataProvider>
+      <div className='App'>
+        {/* <MobileHeader /> */}
+        {/* <Sidebar /> */}
+        {/* <Nav /> */}
+        <AdminLayout><Task /></AdminLayout>
+        
+      </div>
+    </DataProvider>
   )
 }
 

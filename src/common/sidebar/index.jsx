@@ -1,4 +1,4 @@
-import React,{ useState } from 'react';
+import React,{ useState,useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import SideBarHeader from './components/SideBarHeader';
 import { ScrollArea } from './components/ScrollArea';
@@ -8,8 +8,28 @@ import { FaHome,FaList,FaUsers,FaUser,FaChartLine,FaFileAlt } from 'react-icons/
 import { MdFolder,MdAssignment,MdLibraryBooks } from 'react-icons/md';
 
 const Sidebar = () => {
+  //state to toggle sidebar
   const [isExpanded, setIsExpanded] = useState(true);
   const toggleExpand = () => setIsExpanded(!isExpanded);
+
+  //function to add class to clicked nav item
+  const addClass = (nav,e) => {
+    if(e.target.classList.contains('nav-item')){
+      const navItems = nav.querySelectorAll('.nav-item');
+      navItems.forEach(item => item.classList.remove('bg-primary'));
+      e.target.classList.add('bg-primary');
+    }
+  }
+
+  useEffect(() => {
+    const nav = document.querySelector('.nav');
+
+    nav.addEventListener('click', (e) => addClass(nav, e));
+
+    return () => {
+      nav.removeEventListener('click', (e) => addClass(nav, e));
+    }
+  }, [])
 
     const navItems = [
         {icon : <FaHome className='size-5'/> , label : 'Home', link : '/dashboard'},
@@ -20,18 +40,20 @@ const Sidebar = () => {
         {icon : <MdAssignment className='size-5'/>, label : 'Audits', link : '/dashboard'},
         {icon : <FaUsers className='size-5'/>, label : 'Manage Users', link : '/dashboard'},
         {icon : <MdLibraryBooks className='size-5'/>, label : 'Records', link : '/dashboard'},
-        {icon : <FaUser className='size-5'/>, label : 'Profile', link : '/dashboard'}
+        {icon : <FaUser className='size-5'/>, label : 'Profile', link : '/dashboard'},
+        {icon : <FaUser className='size-5'/>, label : 'test', link : '/dashboard'},
+        {icon : <FaUser className='size-5'/>, label : 'extra', link : '/dashboard'},
     ]
   return (
     <div className = "max-w-56 bg-sidebar-gradient border-r-slate-200 shadow-dark h-screen sidebar">
       <div className='container my-0 mx-auto flex flex-col gap-12 h-full'>
         <SideBarHeader isExpanded={isExpanded}/>
         <ScrollArea>
-          <nav>
+          <nav className='nav'>
               {
-                navItems.map(({icon,label,link}) => <Link key={label} to={link} className='flex items-center gap-4 text-white text-sm font-medium py-2 px-4 hover:bg-primaryLight hover:shadow-light rounded-md mx-1 nav-item'>    
+                navItems.map(({icon,label,link}) => <Link key={label} to={link} className='flex items-center gap-4 text-white text-sm font-medium py-2 px-4 hover:bg-primaryLight hover:shadow-light rounded-md mx-1 nav-item' >    
                   {icon}
-                  {isExpanded ? <span>{label}</span> : null}
+                  {isExpanded ? `${label}` : null}
                 </Link>)
               }
           </nav>
