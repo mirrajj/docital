@@ -7,6 +7,7 @@ import Nav from './common/navigation'
 import AdminLayout from './layout/AdminLayout'
 import Task from './pages/tasks'
 import { DataProvider } from './utils/DataContext'
+import Record from './pages/records'
 
 function App() {
 
@@ -17,7 +18,7 @@ function App() {
         {/* <MobileHeader /> */}
         {/* <Sidebar /> */}
         {/* <Nav /> */}
-        <AdminLayout><Task /></AdminLayout>
+        <AdminLayout><Record /></AdminLayout>
         
       </div>
     </DataProvider>
