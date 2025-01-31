@@ -1,6 +1,6 @@
 //reuseable button component for task page
 
-const TaskButton = ({onClick,handleCancel,showModal,name}) => {
+const TaskButton = ({onClick,handleCancel,showModal,name,loading}) => {
   const handleClick = (e) => {
     //checking if the function is passed as a prop
     if(handleCancel){
@@ -18,7 +18,7 @@ const TaskButton = ({onClick,handleCancel,showModal,name}) => {
   }
 
   return (
-    <button className={`bg-primaryLighter text-white  font-semibold rounded-md p-2 w-26 lg:h-14 lg:w-26`} onClick={(e) => handleClick(e)} id = {name}>
+    <button className={`font-semibold rounded-md p-2 w-26 lg:h-14 lg:w-26 ${name === "Cancel" ? "bg-white text-red-400 border border-red-300" : "bg-primaryLight text-white" }`} onClick={(e) => handleClick(e)} id = {name} type = {name === "Cancel" ? "button" : "submit"} >
       {name ? name : 'Button'}
     </button>
   );

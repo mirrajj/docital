@@ -1,5 +1,5 @@
-import TaskForm from "./components/TaskForm";
-import TaskList from "./components/TaskList";
+import TaskForm2 from "./components/TaskForm2";
+import TaskList2 from "./components/TaskList2";
 import TaskButton from "./components/TaskButton";
 import { useState } from "react";
 import { useContext } from "react";
@@ -12,7 +12,6 @@ const Task = () => {
     const {hideModal} = useContext(DataContext);
 
     const onClick = (e) => {
-        // console.log("Hello world");
         setBtnType(e.currentTarget.id);
         setShowForm(true);
     }
@@ -27,9 +26,9 @@ const Task = () => {
     <>
         <TaskButton onClick={onClick} name = "Create New"  />
         {/* handleCancel passed to forms so buttons in the forms modal can hide form modal  */}
-        {showForm && btnType === 'Create New' && <TaskForm btnType={btnType} handleCancel={handleCancel} /> }
-        {showForm && btnType === 'edit' && <TaskForm btnType ={btnType} handleCancel = {handleCancel} />}
-        <TaskList onClick={onClick} />
+        {showForm && btnType === 'Create New' && <TaskForm2 btnType={btnType} handleCancel={handleCancel} /> }
+        {showForm && btnType === 'edit' && <TaskForm2 btnType ={btnType} handleCancel = {handleCancel} />}
+        <TaskList2 onClick={onClick} />
     </>
  );
 };

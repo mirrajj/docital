@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useTheme } from '@table-library/react-table-library/theme';
 import { usePagination } from "@table-library/react-table-library/pagination";
-import useFetchData from '../../tasks/hooks/useFetchData';
+// import useFetchData from '../../tasks/hooks/useFetchTasks';
 
 import {
     Table,
@@ -45,15 +45,16 @@ const RecordList = ({ recordType }) => {
          }
         `,
         HeaderRow: `
-          font-size : 14px;
+          font-size : 1.3rem;
+          font-weight  : 300;
           color : gray;
-          background:;
+          background: transparent;
+          border-bottom : 1px solid #34a853;
           
         `,
         BaseCell: `
-          padding : 5px;
-          border-bottom: 1px dashed #34a853;
-          padding : 2px;
+          padding : 15px 5px;
+          border-bottom: 1px solid #34a853;
             
         `
     }
@@ -119,7 +120,7 @@ const RecordList = ({ recordType }) => {
 
     return (
         <>
-            <Table data={data} sort={sort} pagination={pagination} className="border shadow-light rounded small" theme={theme}>
+            <Table data={data} sort={sort} pagination={pagination} className="" theme={theme}>
                 {(tableList) => (
                     <>
                         <Header>
@@ -167,10 +168,10 @@ const RecordList = ({ recordType }) => {
                                     style={{
                                         color: '#17612b',
                                         background:
-                                            pagination.state.page === index ? "#6b7280" : "#34a85321",
+                                            pagination.state.page === index ? "#6b7280" : "",
                                         marginLeft: '2px',
                                         padding: '0px 6px',
-                                        border: '1px solid #34a853',
+                                        border: '2px solid #34a853',
                                         borderRadius: '2px',
                                         fontWeight:
                                             pagination.state.page === index ? "bold" : "300",

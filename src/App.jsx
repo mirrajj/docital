@@ -8,9 +8,11 @@ import AdminLayout from './layout/AdminLayout'
 import Task from './pages/tasks'
 import { DataProvider } from './utils/DataContext'
 import Record from './pages/records'
+import Monitoring from './pages/monitoring'
+
 
 function App() {
-
+ 
 
   return (
     <DataProvider>
@@ -18,7 +20,7 @@ function App() {
         {/* <MobileHeader /> */}
         {/* <Sidebar /> */}
         {/* <Nav /> */}
-        <AdminLayout><Record /></AdminLayout>
+        <AdminLayout><Task /></AdminLayout>
         
       </div>
     </DataProvider>

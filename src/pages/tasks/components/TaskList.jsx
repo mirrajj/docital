@@ -1,11 +1,12 @@
-import { useState,useContext } from 'react'
+import { useState,useContext, useEffect } from 'react'
 import { CompactTable } from "@table-library/react-table-library/compact";
 import { useTheme } from "@table-library/react-table-library/theme";
-import {tasks as nodes} from '../data/tasks';
+// import {tasks as nodes} from '../data/tasks';
 import TaskSwitch from './TaskSwitch';
 import { MdInfo,MdEdit } from 'react-icons/md';
 import TaskDetailsModal from './TaskDetailsModal';
 import  {DataContext}  from '../../../utils/DataContext';
+import useFetchData from '../hooks/useFetchData';
 
 
 const TaskList = ({onClick}) => {
@@ -13,36 +14,44 @@ const TaskList = ({onClick}) => {
   const [ids, setIds] = useState([]);
   const {showModal} = useContext(DataContext);
 
+
+
+      const {nodes} =  useFetchData("/api/tasks");
+  
+
+
   let data = {nodes}
+  console.log(data);
 
     const tableTheme = {
       Row: `
         background : transparent;
-        font-size : 14  px;
+        font-size : 14px;
         color : #34a853;
-        font-weight : 400;
+        font-weight : 300;
 
         @media (min-width : 1024px) {
          &:nth-of-type(odd) {
-          background-color: #34a85321;
+          background-color: ;
         }
 
         &:nth-of-type(even) {
           background-color: ;
-    }
+        }
           }
       `,
       HeaderRow : `
-        font-size : 14px;
+        font-size : ;
+        font-weight : 300;
         color : #17612b;
-        background:;
+        background: transparent;
         
       `,
       BaseCell  : `
-        padding : 5px;
+        padding : 15px 5px;
         @media (min-width : 1024px) {
-          border-bottom: 1px solid #f5f5f5;
-          padding : 2px;
+          border-bottom: 1px dotted #34a853;
+          padding : 8px 5px;
           }
       `
     }
@@ -72,6 +81,7 @@ const TaskList = ({onClick}) => {
   const row_props = {
     onClick: handleExpand,
   }
+
   const row_options = {
     renderAfterRow: (item) => {
       if (ids.includes(item.id)) {
@@ -79,16 +89,17 @@ const TaskList = ({onClick}) => {
       }
     }
   }
+
 //filtering the data based on the search input, runs on every change in the search input
   data = {
     nodes: data.nodes.filter((task) => {
-      return task.title.toLowerCase().includes(search.toLowerCase());
+      return task.task_name.toLowerCase().includes(search.toLowerCase());
     }),
   }
     // console.log(data);
 
   const columns = [
-    { label: "Title", renderCell: (item) => item.title },
+    { label: "Task Name", renderCell: (item) => item.task_name },
     { label: "Active", renderCell: () => <TaskSwitch onChange={onChange} /> },
     { label: "Details", renderCell: () => <MdInfo size="20" /> },
     { label: "Edit", renderCell: () => <div className='cursor-pointer hover:opacity-50 w-fit'><MdEdit size="20" id='edit' onClick={(e) => { onClick(e); showModal() }} /></div> },
@@ -96,7 +107,7 @@ const TaskList = ({onClick}) => {
 
 
   return (
-    <div className='container mx-auto rounded-md shadow-light p-2 pt-8 bg-white'>
+    <div className='container mx-auto p-2 pt-8 bg-transparent border border-x-0 border-y-2'>
 
       <label htmlFor="search" className="text-base text-primaryDark ">
         Search Task:&nbsp;

@@ -15,7 +15,7 @@ const StyledSwitch = styled(Switch)(({ theme }) => ({
     },
   }));
 
-const TaskSwitch = ({onChange}) => { //onChange function to be passed as prop
+const TaskSwitch = ({onChange}) => {
 
   return (
     <StyledSwitch color="primary" onChange={onChange} size="small" />

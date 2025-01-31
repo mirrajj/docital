@@ -8,3 +8,18 @@
 .icon + .icon {
     @apply ml-7;
 }
+.btn-primary{
+    border-radius: 0.5rem;
+    padding-left: 0.5rem /* 8px */;
+    padding-right: 0.5rem ;
+    padding-top: 0.75rem /* 12px */;
+    padding-bottom: 0.75rem /* 12px */;
+    font-size: 0.875rem /* 14px */;
+    line-height: 1.25rem /* 20px */;
+    border-color: rgb(56 161 105 / var(--tw-border-opacity, 1)) /* #38a169 */;
+    border-width: 1px;
+    color : #34A853;
+}
+.btn-primary:hover{
+    opacity: 50%;
+}
