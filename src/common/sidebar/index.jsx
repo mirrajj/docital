@@ -12,12 +12,13 @@ const Sidebar = () => {
   const [isExpanded, setIsExpanded] = useState(true);
   const toggleExpand = () => setIsExpanded(!isExpanded);
 
+
   //function to add class to clicked nav item
   const addClass = (nav,e) => {
     if(e.target.classList.contains('nav-item')){
       const navItems = nav.querySelectorAll('.nav-item');
-      navItems.forEach(item => item.classList.remove('bg-primary'));
-      e.target.classList.add('bg-primary');
+      navItems.forEach(item => item.classList.remove('nav-active'));
+      e.target.classList.add('nav-active');
     }
   }
 
@@ -51,7 +52,7 @@ const Sidebar = () => {
         <ScrollArea>
           <nav className='nav'>
               {
-                navItems.map(({icon,label,link}) => <Link key={label} to={link} className='flex items-center gap-4 text-white text-sm font-medium py-2 px-4 hover:bg-primaryLight hover:shadow-light rounded-md mx-1 nav-item' >    
+                navItems.map(({icon,label,link}) => <Link key={label} to={link} className='flex items-center gap-4 text-white text-sm font-medium py-2 px-4 hover:bg-white hover:text-primary hover:shadow-light rounded-md mx-1 nav-item' >    
                   {icon}
                   {isExpanded ? `${label}` : null}
                 </Link>)

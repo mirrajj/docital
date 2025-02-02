@@ -14,6 +14,7 @@ const useFetchTasks = (retryCount) => {
         let { data: tasks, error } = await supabase
           .from('task')
           .select(`
+            task_id,
             task_name,
             task_type,
             status,

@@ -1,53 +1,420 @@
-import TaskButton from './TaskButton';
+import TaskButton from "./TaskButton";
+import React, { useState, useEffect } from "react";
+import { MdTaskAlt, MdList, MdCheck } from "react-icons/md";
+import useInsertTask from "../hooks/useInsertTasks";
+import useSubmitEditTask from "../hooks/useSubmitEditTask";
 
-const TaskForm = ({btnType,handleCancel}) => {
+
+const TaskForm2 = ({ btnType,
+    handleCancel,
+    setTaskDetails,
+    setSubtasks,
+    taskDetails,
+    subtasks,
+    currentTaskID,
+    setShowForm,
+    setShowSuccess,
+    hideModal }) => {
+
+
+    const {insertTask,loading,error} = useInsertTask();
+
+    const [step, setStep] = useState(1); 
+    const [taskType, setTaskType] = useState(""); 
+    const [dataFields, setDataFields] = useState([]); 
+    const [originalSubtasks, setOriginalSubtasks] = useState([]);
+
+    const {submitEditTask,loading : editLoading,error : editError} = useSubmitEditTask();
+    
+    useEffect(() => {
+        setOriginalSubtasks(subtasks);
+    },[]);
+
+    console.log("subtasks",subtasks);
+    console.log("originalSubtasks",originalSubtasks);
+
+
+    // Handlers
+    const handleTaskTypeChange = (type) => {
+        if (taskDetails.title.trim() === "" || taskDetails.department.trim() === "") {
+            alert("Please fill out the title and department fields before proceeding.");
+            return;
+        }
+        setTaskType(type);
+        setStep(2);
+    };
+
+    const handleTaskDetailsChange = (field, value) => { //goes into task table
+        setTaskDetails({ ...taskDetails, [field]: value });
+    };
+
+    const handleFileUpload = (e) => {
+        setTaskDetails({ ...taskDetails, instructionFile: e.target.files[0] });
+    };
+
+    const handleAddSubtask = () => {
+        setSubtasks([...subtasks, { subtask_name: "", subtask_skippable: false }]);
+    };
+
+    const handleSubtaskChange = (index, field, value) => {
+        const updatedSubtasks = [...subtasks];
+        updatedSubtasks[index][field] = value;
+        setSubtasks(updatedSubtasks);
+    };
+
+    const handleDeleteSubtask = (index) => { // for edit task
+        const updatedSubtasks = subtasks.filter((_, i) => i !== index);
+        setSubtasks(updatedSubtasks);
+    };
+
+    const handleAddDataField = () => {
+        setDataFields([...dataFields, { name: "", type: "text" }]);
+    };
+
+    const handleDataFieldChange = (index, field, value) => {
+        const updatedFields = [...dataFields];
+        updatedFields[index][field] = value;
+        setDataFields(updatedFields);
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (btnType === "Create New") {
+        if (taskDetails.title.trim() === "" || taskDetails.department.trim() === "" || taskDetails.completedBy.trim() === "") {
+            alert("Please ensure all required fields (title, department, and completed by) are filled out before submitting.");
+            return;
+        }
+
+        if (step > 1 && dataFields.some((field) => field.name.trim() === "")) {
+            alert("All data fields must be filled out before submitting.");
+            return;
+        }
+        const taskSubmission = {
+            taskDetails,
+            taskType,
+            subtasks,
+            dataFields,
+        };
+        await insertTask(taskSubmission);
+        console.log("Task Submitted:", taskSubmission);
+    } else {
+        if (taskDetails.title.trim() === "" || taskDetails.department.trim() === "" || taskDetails.completedBy.trim() === "") {
+            alert("Please ensure all required fields (title, department, and completed by) are filled out before submitting.");
+            return;
+        }
+        const editSubmission = {
+            taskDetails,
+            subtasks,
+            originalSubtasks,
+            currentTaskID,
+            setTaskDetails,
+            setSubtasks,
+            setShowForm,
+            setShowSuccess,
+            hideModal
+        };
+        await submitEditTask(editSubmission);
+        console.log("Task Updated");
+    }
+    };
 
     return (
-        <div className={`${btnType === "Create New" ? "container mx-auto  px-4 py-10  bg-gradient-to-b from-primaryFaint from-5% via-white m-2" :
-            " container lg:max-w-3xl lg:w-8/12  absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-4 py-10 bg-white rounded-2xl shadow-darker   z-20 bg-gradient-to-b from-primaryFaint from-5% via-white"} `}>
-            {/* {${btnType === "Create Task"}} */}
-            <div className='text-primaryDark mb-6 '>
-                <h3 className='font-bold'>Create and Manage Tasks</h3>
-                <h4 className='tracking-wider'>All * Inputs Are Required</h4>
-            </div>
-            <hr className="bg-primaryDark" />
-            <form className='text-sm text-primaryDark lg:flex lg:flex-wrap lg:justify-between ' onSubmit={(e) => e.preventDefault()}>
-                <div className='lg:basis-1/2'>
+        <>
+            {btnType === "Create New" ?
+                <div className="container mx-auto  px-4 py-10 bg-white rounded-lg border-dashed border-2">
+                    <div className="text-primaryDark mb-6">
+                        <h3 className="font-bold">Create New Tasks</h3>
+                        <h4 className="tracking-wider">All Inputs Marked * Are Required</h4>
+                    </div>
+                    <hr className="bg-gray-400 mb-4" />
+                    <div className="flex justify-end mb-4">
+                        <TaskButton handleCancel={handleCancel} name={"Cancel"} />
+                    </div>
+ 
 
-                    <div className=' form-group lg:grow'>
-                        <label htmlFor="title" >Title *</label>
-                        <input type="text" id="title" name="title" className='border w-2/3' required />
+                    {step === 1 && (
+                        <form className="px-10">
+                            <h5 className="text-gray-400 text-3xl mb-4">Task Details:</h5>
+
+                            <div className="mb-4">
+                                <label className="block mb-1 text-gray-400 font-bold">Task Title *</label>
+                                <input
+                                    type="text"
+                                    placeholder="Enter task title"
+                                    value={taskDetails.title}
+                                    onChange={(e) => handleTaskDetailsChange("title", e.target.value)}
+                                    className="border-2 w-full px-2 py-2 rounded-lg outline-none text-xs"
+                                    required
+                                />
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block mb-1 text-gray-400 font-bold">Department *</label>
+                                <input
+                                    type="text"
+                                    placeholder="Enter department"
+                                    value={taskDetails.department}
+                                    onChange={(e) => handleTaskDetailsChange("department", e.target.value)}
+                                    className="border-2 w-full px-2 py-2 rounded-lg outline-none text-xs"
+                                    required
+                                />
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block mb-1 text-gray-400 font-bold">Completed By</label>
+                                <input
+                                    type="text"
+                                    placeholder="eg. 3hrs..."
+                                    value={taskDetails.completedBy}
+                                    onChange={(e) => handleTaskDetailsChange("completedBy", e.target.value)}
+                                    className="border-2 w-full px-2 py-2 outline-none rounded-lg text-xs"
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block mb-1 text-gray-400 font-bold">Instruction File</label>
+                                <label
+                                    className="flex items-center cursor-pointer w-fit px-3 py-2 hover:bg-gray-100"
+                                >
+                                    <span className="mr-2 text-gray-400 text-xs">📁 Upload File</span>
+                                    <input
+                                        type="file"
+                                        onChange={handleFileUpload}
+                                        className="hidden"
+                                    />
+                                </label>
+                            </div>
+                            <div className=" flex mt-4 items-center gap-4 justify-between">
+                                <TaskButton onClick={handleSubmit} name="Finish" loading = {loading} />
+                                <h5 className="text-red-400 text-xs font-bold my-4 bg-gray-300 text-center py-4 rounded-lg grow">for tasks that require input data or subtasks continue below</h5>
+                            </div>
+
+                            <h5 className="text-gray-400 text-3xl mb-4">Select Task Type:</h5>
+                            <div className="flex gap-4">
+                                <div
+                                    className="p-4 border rounded shadow-md cursor-pointer hover:bg-primaryFaint"
+                                    onClick={() => handleTaskTypeChange("checklist")}
+                                >
+                                    <h6 className="font-bold text-primaryDark">Checklist Task</h6>
+                                    <p className="text-sm text-gray-600">
+                                        A checklist task allows you to create a series of subtasks that can be marked as skippable or not.
+                                    </p>
+                                </div>
+                                <div
+                                    className="p-4 border rounded shadow-md cursor-pointer hover:bg-primaryFaint"
+                                    onClick={() => handleTaskTypeChange("data-collection")}
+                                >
+                                    <h6 className="font-bold text-primaryDark">Data Collection Task</h6>
+                                    <p className="text-sm text-gray-600">
+                                        A data collection task lets you specify custom fields for gathering necessary information.
+                                    </p>
+                                </div>
+                            </div>
+                        </form>
+                    )}
+
+                    {step === 2 && taskType === "checklist" && (
+                        <div>
+                            <h5 className="text-gray-400 text-3xl mb-4">Checklist Task:</h5>
+
+                            <ul>
+                                {subtasks.map((subtask, index) => (
+                                    <li key={index} className="flex gap-2 my-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Subtask Name"
+                                            value={subtask.name}
+                                            onChange={(e) =>
+                                                handleSubtaskChange(index, "name", e.target.value)
+                                            }
+                                            className="border px-2 py-1 rounded-md"
+                                        />
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                checked={subtask.skippable}
+                                                onChange={(e) =>
+                                                    handleSubtaskChange(
+                                                        index,
+                                                        "skippable",
+                                                        e.target.checked
+                                                    )
+                                                }
+                                            />
+                                            Skippable
+                                        </label>
+                                    </li>
+                                ))}
+                            </ul>
+                            <button className="btn-primary" onClick={handleAddSubtask}>
+                                Add Subtask
+                            </button>
+                            <p></p>
+                            <button
+                                className="btn-primary mt-4"
+                                onClick={() => setStep(3)}
+                            >
+                                Finish Checklist
+                            </button>
+                        </div>
+                    )}
+
+                    {step === 2 && taskType === "data-collection" && (
+                        <div>
+                            <h5 className="text-gray-400 text-3xl mb-4">Data Collection Task:</h5>
+
+                            <ul>
+                                {dataFields.map((field, index) => (
+                                    <li key={index} className="my-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Field Name"
+                                            value={field.name}
+                                            onChange={(e) =>
+                                                handleDataFieldChange(index, "name", e.target.value)
+                                            }
+                                            className="border px-2 py-1"
+                                        />
+                                        <select
+                                            value={field.type}
+                                            onChange={(e) =>
+                                                handleDataFieldChange(index, "type", e.target.value)
+                                            }
+                                            className="border px-2 py-1 ml-2"
+                                        >
+                                            <option value="text">Text</option>
+                                            <option value="float4">Number</option>
+                                            <option value="bool">Boolean</option>
+                                            <option value="date">Date</option>
+                                        </select>
+                                    </li>
+                                ))}
+                            </ul>
+                            <button className="btn-primary" onClick={handleAddDataField}>
+                                Add Field
+                            </button>
+                            <p></p>
+                            <button
+                                className="btn-primary mt-4"
+                                onClick={() => setStep(3)}
+                            >
+                                Finish Data Collection
+                            </button>
+                        </div>
+                    )}
+
+                    {step === 3 && (
+                        <div>
+                            <h5 className="text-gray-400 text-3xl mb-4">Review & Submit:</h5>
+                            <pre className="bg-gray-100 p-4 rounded">
+                                {JSON.stringify(
+                                    { taskDetails, taskType, subtasks, dataFields },
+                                    null,
+                                    2
+                                )}
+                            </pre>
+                            <div className="flex gap-4 mt-4">
+                                <TaskButton name="Submit" onClick={handleSubmit} loading={loading} />
+                                <TaskButton name="Cancel" onClick={handleCancel} />
+                            </div>
+                        </div>
+                    )}
+        
+                {error && <p style={{ color: 'red' }}>{error}</p>}
+                </div>
+                :
+                <div className="container lg:max-w-3xl lg:w-8/12  absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-4 py-10 bg-white rounded-2xl shadow-darker  z-20 bg-gradient-to-b from-primaryFaint from-5% via-white">
+
+                    <div className="text-primaryDark mb-6">
+                        <h3 className="font-bold">Edit Task</h3>
+                        <h4 className="tracking-wider">Modify the task details and subtasks as needed</h4>
                     </div>
-                    <div className=' form-group lg:grow'>
-                        <label htmlFor="department">Department *</label>
-                        <input type="text" id="department" name="department" className='border w-2/3' required />
+                    <hr className="bg-primaryDark mb-4" />
+
+                    <div>
+                        <h5>Task Details:</h5>
+                        <div className="mb-4">
+                            <label className="block mb-1 text-sm">Task Title *</label>
+                            <input
+                                type="text"
+                                placeholder="Enter task title"
+                                value={taskDetails.title}
+                                onChange={(e) => handleTaskDetailsChange("title", e.target.value)}
+                                className="border w-full px-2 py-1 text-sm"
+                            />
+                        </div>
+                        {taskDetails.department && 
+                            <div className="mb-4">
+                                <label className="block mb-1 text-sm">Department *</label>
+                                <input
+                                    type="text"
+                                    placeholder="Enter department"
+                                    value={taskDetails.department}
+                                    onChange={(e) => handleTaskDetailsChange("department", e.target.value)}
+                                    className="border w-full px-2 py-1 text-sm"
+                                />
+                            </div>
+                        }
+
+                        <div className="mb-4">
+                            <label className="block mb-1 text-sm">Completed By *</label>
+                            <input
+                                type="text"
+                                placeholder="Enter responsible person"
+                                value={taskDetails.completedBy}
+                                onChange={(e) => handleTaskDetailsChange("completedBy", e.target.value)}
+                                className="border w-full px-2 py-1 text-sm"
+                            />
+                        </div>
+                        
+                        <div className="mb-4">
+                            <label className="block mb-1">Instruction File</label>
+                            <input
+                                type="file"
+                                onChange={handleFileUpload}
+                                className="border w-full px-2 py-1"
+                            />
+                        </div>
+
+                        <h5>Subtasks:</h5>
+                        <ul>
+                            {subtasks.map((subtask, index) => (
+                                <li key={index} className="flex gap-2 my-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Subtask Name"
+                                        value={subtask.subtask_name}
+                                        onChange={(e) => handleSubtaskChange(index, "subtask_name", e.target.value)}
+                                        className="border px-2 py-1"
+                                    />
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            checked={subtask.subtask_skippable}
+                                            onChange={(e) => handleSubtaskChange(index, "subtask_skippable", e.target.checked)}
+                                        />
+                                        Skippable
+                                    </label>
+                                    <button className="btn-danger" onClick={() => handleDeleteSubtask(index)}>
+                                        Delete
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                        <button className="btn-primary" onClick={handleAddSubtask}>
+                            Add Subtask
+                        </button>
                     </div>
-                    <div className=' form-group lg:grow'>
-                        <label htmlFor="assignee">Assignee</label>
-                        <input type="text" id="assignee" name="assignee" className='border w-2/3' required />
+
+                    <div className="flex gap-4 mt-4">
+                        <button className="btn-primary" onClick={handleSubmit}>Submit Changes</button>
+                        <button className="btn-primary" onClick={handleCancel}>Cancel</button>
                     </div>
                 </div>
-                <div className='lg:basis-1/2'>
-                    <div className=' form-group lg:grow'>
-                        <label htmlFor="completed">Completed</label>
-                        <input type="text" id="completed" name="completed" className='border w-2/3' />
-                    </div>
-                    <div className=' form-group lg:grow'>
-                        <label htmlFor="one-time">One Time</label>
-                        <input type="checkbox" id="one-time" name="one-time" />
-                    </div>
-                    <div className='form-group lg:grow'>
-                        <label htmlFor="one-time">Attach Instruction</label>
-                        <input type="file" />
-                    </div>
-                </div>
-                <div className="justify-self-end flex gap-2 lg:grow lg:flex lg:justify-end lg:gap-2">
-                    {/* buttons for task cancel and submit or create */}
-                    <TaskButton name='Create Task'/>
-                    <TaskButton name='Cancel' handleCancel={handleCancel} />
-                </div>
-            </form>
-        </div>
+
+            }
+    
+        </>
+
     );
-}
-export default TaskForm;
+};
+export default TaskForm2;

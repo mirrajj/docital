@@ -3,8 +3,12 @@
     height : 100%;
     overflow-y: auto;
     overflow-x: hidden;
-    border-top : 0.5px solid rgba(128, 128, 128, 0.826);
+    border-top : 2px solid rgb(229, 224, 224);
     position: relative;
+}
+.nav-active{
+    background-color: #f5f5f5;
+    color: #34a853;
 }
 
 .nav-item + .nav-item{
