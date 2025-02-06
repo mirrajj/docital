@@ -20,3 +20,31 @@
     margin : 20px auto;
   }
 }
+/* Slide-in animation */
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Slide-out animation */
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Apply animations dynamically */
+.animate-slide-in {
+  animation: slideIn 0.3s ease-in-out forwards;
+}
+
+.animate-slide-out {
+  animation: slideOut 0.3s ease-in-out forwards;
+}

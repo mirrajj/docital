@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import supabase from '../../../config/supabaseClient';
 
-const useFetchTasks = (retryCount) => {
+const useFetchTasks = (retryCount,setShowError) => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -19,6 +19,9 @@ const useFetchTasks = (retryCount) => {
             task_type,
             status,
             created_at,
+            active,
+            frequency,
+            completion_window,
             department (
               name
             )
@@ -34,6 +37,7 @@ const useFetchTasks = (retryCount) => {
         setTasks(tasks);
       } catch (err) {
         setError(err.message);
+        setShowError(true);
       } finally {
         setLoading(false);
       }

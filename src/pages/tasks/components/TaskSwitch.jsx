@@ -1,24 +1,31 @@
-import React from 'react';
+import { useState } from 'react';
 import Switch from '@mui/material/Switch';
-import {styled} from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
 
 const StyledSwitch = styled(Switch)(({ theme }) => ({
-    '& .MuiSwitch-switchBase': {
+  '& .MuiSwitch-switchBase': {
     //   color: theme.palette.primary.main,
-        
-      '&.Mui-checked': {
-        color: "#fff",
-      },
-      '&.Mui-checked + .MuiSwitch-track': {
-        backgroundColor: "green",
-      },
-    },
-  }));
 
-const TaskSwitch = ({onChange}) => {
+    '&.Mui-checked': {
+      color: "#fff",
+    },
+    '&.Mui-checked + .MuiSwitch-track': {
+      backgroundColor: "green",
+    },
+  },
+}));
+
+const TaskSwitch = ({ checked, updateTaskStatus, itemID }) => {
+  const [ischecked, setIsChecked] = useState(checked);
+
+  const onChange = (e) => {
+    setIsChecked(!ischecked);
+    updateTaskStatus(itemID, !ischecked);
+  };
+
 
   return (
-    <StyledSwitch color="primary" onChange={onChange} size="small" />
+    <StyledSwitch color="primary" onChange={(e) => onChange(e)} size="small" checked={ischecked} />
   );
 }
 

@@ -5,7 +5,7 @@ const useEditTask = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleEditTask = async (taskId, setTaskDetails, setSubtasks) => {
+  const handleEditTask = async (taskId, setTaskDetails, setSubtasks,setShowError) => {
     setLoading(true);
     setError(null);
 
@@ -34,10 +34,13 @@ const useEditTask = () => {
      
 
       setSubtasks(task.subtask || []); 
+      return "success";
 
     } catch (err) {
       setError(err.message);
+      setShowError(true);
       console.error('Error fetching task:', err);
+      return null;
     } finally {
       setLoading(false);
     }

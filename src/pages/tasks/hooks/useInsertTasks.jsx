@@ -6,7 +6,7 @@ const useInsertTask = () => {
     const [error, setError] = useState(null);
 
     const insertTask = async (taskSubmission) => {
-        const { taskDetails, taskType, subtasks, dataFields } = taskSubmission;
+        const { taskDetails, taskType, subtasks, dataFields,setShowForm,setTaskDetails,setSubtasks,setShowSuccess } = taskSubmission;
 
         setLoading(true);
         setError(null);
@@ -38,7 +38,7 @@ const useInsertTask = () => {
                         task_name: taskDetails.title,
                         task_type: taskType || 'general', // Default task type
                         department_id: departmentId, // Use the fetched department ID
-                        status: 'active', // Default status
+                        status: 'pending', // Default status
                     },
                 ])
                 .select('task_id') // Return the inserted task ID
@@ -55,8 +55,8 @@ const useInsertTask = () => {
             if (subtasks.length > 0) {
                 const subtaskInsertions = subtasks.map((subtask) => ({
                     task_id: taskId,
-                    subtask_name: subtask.name,
-                    subtask_skippable: subtask.skippable || false, // Default value
+                    subtask_name: subtask.subtask_name,
+                    subtask_skippable: subtask.subtask_skippable || false, // Default value
                 }));
 
                 const { error: subtaskError } = await supabase
@@ -104,7 +104,21 @@ const useInsertTask = () => {
                 }
             }
 
+
             console.log('Task inserted successfully!');
+            setShowForm(false);
+
+            // Reset states
+            setTaskDetails({
+                title: '',
+                department: '',
+                completedBy: '',
+                instructionFile: null,
+            });
+            setSubtasks([]);
+
+            // Show success popup
+            setShowSuccess(true);
         } catch (err) {
             setError(err.message);
             console.error('Error inserting task:', err);

@@ -6,7 +6,7 @@ const useSubmitEditTask = () => {
     const [error, setError] = useState(null);
 
     const submitEditTask = async (editSubmission) => {
-        const {currentTaskID, taskDetails, subtasks, originalSubtasks,setTaskDetails,setSubtasks,setShowForm,setShowSuccess,hideModal} = editSubmission;
+        const {currentTaskID, taskDetails, subtasks, originalSubtasks,setTaskDetails,setSubtasks,setShowForm,setShowSuccess,setShowError,hideModal} = editSubmission;
         setLoading(true);
         setError(null);
         console.log(currentTaskID);
@@ -82,10 +82,11 @@ const useSubmitEditTask = () => {
 
             // Show success popup
             setShowSuccess(true);
-            setTimeout(() => setShowSuccess(false), 2000); // Hide after 2 seconds
+            // setTimeout(() => setShowSuccess(false), 2000); // Hide after 2 seconds
 
         } catch (err) {
             setError(err.message);
+            setShowError(true);
             console.error('Error updating task:', err);
         } finally {
             setLoading(false);

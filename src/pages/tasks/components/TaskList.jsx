@@ -15,19 +15,23 @@ import { useTheme } from '@table-library/react-table-library/theme';
 import { DataContext } from '../../../utils/DataContext';
 import TaskDetailsModal from './TaskDetailsModal';
 import LoadingSpinner from '../../../common/LoadingSpinner';
+import TaskSwitch from './TaskSwitch';
 import useEditTask from '../hooks/useEditTask';
+import TableLoadingSkeleton from '../../components/TableLoadingSkeleton';
+import useUpdateTaskStatus from '../hooks/useUpdateTaskStatus';
 
 
 
-const TaskList2 = ({ onClick, setTaskDetails, setSubtasks,setCurrentTaskID,currentID }) => {
+const TaskList2 = ({ onClick, setTaskDetails, setSubtasks,setCurrentTaskID,setShowError,currentID }) => {
     const { handleEditTask, loading: editLoading, error: editError } = useEditTask();
+    const { updateTaskStatus, loading: updateLoading, error: updateError } = useUpdateTaskStatus();
     const {showModal} = useContext(DataContext);
     const [retryCount, setRetryCount] = useState(0);
     const [search, setSearch] = useState("");
     const [taskName, setTaskName] = useState([]);
     const [nodes, setNodes] = useState([]);
     const maxRetries = 3;
-    const { tasks, loading, error } = useFetchTasks(retryCount);
+    const { tasks, loading, error } = useFetchTasks(retryCount,setShowError);
 
     useEffect(() => {
         setNodes(tasks);
@@ -79,37 +83,27 @@ const TaskList2 = ({ onClick, setTaskDetails, setSubtasks,setCurrentTaskID,curre
             setRetryCount(retryCount + 1);
         }
     };
+
     const handleEditButtonClicked = async (elementID,taskID) => {
 
         setCurrentTaskID(taskID);
-        await handleEditTask(taskID,setTaskDetails, setSubtasks);
-        if (!editLoading && !editError) {
+         const response = await handleEditTask(taskID,setTaskDetails, setSubtasks,setShowError);
+        if (response === "success") {
+            console.log("inside handleEditButtonClicked");
             onClick(elementID);
             showModal();
         }
     }
 
-    if (loading) {
-        return <LoadingSpinner size={50} />;
+    if (loading || error) {
+        return <TableLoadingSkeleton error={error} retryCount={retryCount} maxRetries={maxRetries} handleRetry={handleRetry} isLoading={loading} />;
     }
 
-    if (error) {
-        return (
-            <div className="text-red-500 text-center">
-                Error: {error}
-                {retryCount < maxRetries && (
-                    <button className="ml-4 px-4 py-2 bg-blue-500 text-white rounded" onClick={handleRetry}>
-                        Retry ({retryCount + 1}/{maxRetries})
-                    </button>
-                )}
-            </div>
-        );
-    }
 
     return (
         <div className='container mx-auto p-2 pt-8 bg-white rounded-lg my-8 border-2'>
-            <div className="relative">
-                <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <div className="relative text-right">
+                <MdSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                     id="search"
                     type="text"
@@ -120,6 +114,7 @@ const TaskList2 = ({ onClick, setTaskDetails, setSubtasks,setCurrentTaskID,curre
                 />
             </div>
             <br />
+            <hr />
 
             <Table data={data} theme={theme}>
                 {(tableList) => (
@@ -130,7 +125,7 @@ const TaskList2 = ({ onClick, setTaskDetails, setSubtasks,setCurrentTaskID,curre
                                 <HeaderCell>Name</HeaderCell>
                                 <HeaderCell>Type</HeaderCell>
                                 <HeaderCell>Department</HeaderCell>
-                                <HeaderCell>Status</HeaderCell>
+                                <HeaderCell>Active</HeaderCell>
                                 <HeaderCell>Edit</HeaderCell>
                             </HeaderRow>
                         </Header>
@@ -143,9 +138,15 @@ const TaskList2 = ({ onClick, setTaskDetails, setSubtasks,setCurrentTaskID,curre
                                         <Cell>{item.task_name}</Cell>
                                         <Cell>{item.task_type}</Cell>
                                         <Cell>{item.department.name}</Cell>
-                                        <Cell className={`${item.status === "paused" ? "text-yellow-500" : "text-primary"}`}>{item.status}</Cell>
                                         <Cell>
-                                            <div className="cursor-pointer  w-fit py-1 flex items-center gap-2">
+                                            <div onClick={() => setCurrentTaskID(item.task_id)}>
+                                            {
+                                                updateLoading && currentID === item.task_id ? ( <LoadingSpinner size={20} /> ) : (<TaskSwitch itemID = {item.task_id} checked = {item.active} updateTaskStatus={updateTaskStatus} />)
+                                            }
+                                            </div>
+                                        </Cell>
+                                        <Cell>
+                                            <div className="cursor-pointer border rounded-2xl w-fit py-1 px-1 flex items-center gap-2">
                                                 {editLoading && currentID === item.task_id ? (
                                                     <LoadingSpinner size={20} /> // Show loading spinner
                                                 ) : (
@@ -176,16 +177,6 @@ const TaskList2 = ({ onClick, setTaskDetails, setSubtasks,setCurrentTaskID,curre
                                                                 )}
                                                             </span>
                                                     </>
-                                                )}
-
-                                                {editError && (
-                                                    setTimeout(() => {
-                                                        (
-                                                            <div className="fixed top-4 right-4 bg-red-500 text-white text-xs p-2 rounded shadow">
-                                                                {editError}
-                                                            </div>
-                                                        );
-                                                    }, 3000)
                                                 )}
                                             </div>
 

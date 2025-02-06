@@ -20,7 +20,7 @@ export default {
         'light' : '0px 0px 4px 2px rgba(0, 0, 0, 0.25)'
       },
       backgroundImage : {
-        'sidebar-gradient' : 'linear-gradient(to bottom, #17612b 9%, #16a34a 33%, #34a853 62%, #000000 100%)',
+        'sidebar-gradient' : 'linear-gradient(to bottom, #17612b 9%, #16a34a 33%, #34a853 95%, #000000 100%)',
       },
       maxWidth : {
         '75' : '75%',
