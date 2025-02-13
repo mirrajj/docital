@@ -3,7 +3,7 @@
     height : 100%;
     overflow-y: auto;
     overflow-x: hidden;
-    border-top : 2px solid rgb(229, 224, 224);
+    border-top : 1px solid rgb(229, 224, 224);
     position: relative;
 }
 .nav-active{

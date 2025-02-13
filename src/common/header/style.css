@@ -17,8 +17,9 @@
     font-size: 0.875rem /* 14px */;
     line-height: 1.25rem /* 20px */;
     border-color: rgb(56 161 105 / var(--tw-border-opacity, 1)) /* #38a169 */;
-    border-width: 1px;
+    border-width: 2px;
     color : #34A853;
+    font-weight : 500;
 }
 .btn-primary:hover{
     opacity: 50%;

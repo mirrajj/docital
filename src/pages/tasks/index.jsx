@@ -7,18 +7,27 @@ import { DataContext } from "../../utils/DataContext";
 import AppAlert from "../../common/AppAlert";
 
 
+
 const Task = () => {
     const [showForm, setShowForm] = useState(false);
     const [btnType, setBtnType] = useState("");
-    const { hideModal } = useContext(DataContext);
+    const { hideModal,showModal } = useContext(DataContext);
     const [subtasks, setSubtasks] = useState([]);
     const [currentTaskID, setCurrentTaskID] = useState(null);
-    const [showSuccess, setShowSuccess] = useState(false);
-    const [showError, setShowError] = useState(false);
+    const [showSuccess, setShowSuccess] = useState({state: false, message : ""});
+    const [showError, setShowError] = useState({state: false, message : ""});
+    const [ dataFields,setDataFields ] = useState([]);
     const [taskDetails, setTaskDetails] = useState({
-        title: "",
+        name: "",
         department: "",
-        completedBy: "",
+        description : "",
+        active : "",
+        completion_window_value : null,
+        completion_window_unit : "",
+        completion_window : "",
+        frequency : "",
+        frequency_value : null,
+        frequency_unit : "",
         instructionFile: null,
     });
 
@@ -32,48 +41,60 @@ const Task = () => {
     // console.log(currentTaskID);
 
     //function to remove form modal after it is cancelled
-    const handleCancel = () => {
-        setTaskDetails({
-            title: '',
-            department: '',
-            completedBy: '',
-            instructionFile: null,
-        });
-        setSubtasks([]);
-        setShowForm(false);
-        hideModal();
-    }
+    // const handleCancel = () => {
+    //     setTaskDetails({
+    //         name: "",
+    //         department: "",
+    //         description: "",
+    //         active: "",
+    //         completion_window_value: null,
+    //         completion_window_unit: "",
+    //         completion_window: "",
+    //         frequency: "",
+    //         frequency_value: null,
+    //         frequency_unit: "",
+    //         instructionFile: null,
+    //     });
+    //     setSubtasks([]);
+    //     setShowForm(false);
+    //     hideModal();
+    // }
 
 
     return (
         <>
-            {showError && (
+            {/* <DashboardHeader title="Task" /> */}
+            {showError.state && (
                 <AppAlert
                     type="error"
-                    message="Failed. Please try again."
+                    message={showError.message}
                     onClose={() => setShowError(false)}
                 />
             )}
 
-            {showSuccess && (
+            {showSuccess.state && (
                 <AppAlert
                     type="success"
-                    message="Task successfully!"
+                    message={showSuccess.message}
                     onClose={() => setShowSuccess(false)}
                 />
             )}
-
-            <TaskButton onClick={onClick} name="Create New" />
+            <div className="flex justify-end mb-2 border-b4">
+                <TaskButton onClick={onClick} name="Create New" />
+            </div>
 
             {showForm && <TaskForm2
                 hideModal={hideModal}
+                showModal={showModal}
                 setShowSuccess={setShowSuccess}
                 setShowError={setShowError}
                 setShowForm={setShowForm}
                 btnType={btnType}
-                handleCancel={handleCancel}
+                // handleCancel={handleCancel}
                 setSubtasks={setSubtasks}
                 setTaskDetails={setTaskDetails}
+                dataFields = {dataFields}
+                setDataFields = {setDataFields}
                 subtasks={subtasks}
                 taskDetails={taskDetails}
                 currentTaskID={currentTaskID} />}
@@ -83,8 +104,11 @@ const Task = () => {
                 setShowError={setShowError}
                 setShowSuccess={setShowSuccess}
                 setSubtasks={setSubtasks}
+                dataFields = {dataFields}
+                setDataFields = {setDataFields}
                 setTaskDetails={setTaskDetails}
                 setCurrentTaskID={setCurrentTaskID}
+                setShowForm = {setShowForm}
                 currentID={currentTaskID} />
         </>
     );

@@ -1,7 +1,7 @@
 import React from 'react';
 import Skeleton from '@mui/material/Skeleton';
 
-const TableLoadingSkeleton = ({ error, retryCount, maxRetries, handleRetry, isLoading = true }) => {
+const TableLoadingSkeleton = ({ error, retryCount, maxRetries, handleRetry, isLoading }) => {
   return (
     <div className='container mx-auto p-2 pt-8 bg-white rounded-lg my-8 border-2'>
       {error ? (
@@ -11,8 +11,9 @@ const TableLoadingSkeleton = ({ error, retryCount, maxRetries, handleRetry, isLo
             <br />
             {retryCount < maxRetries && (
               <button 
-                className="ml-4 px-4 py-2 bg-primary text-white rounded" 
+                className= "ml-4 px-4 py-2 bg-primary text-white rounded"
                 onClick={handleRetry}
+                disabled = {isLoading ? true : false}
               >
                 Retry ({retryCount + 1}/{maxRetries})
               </button>

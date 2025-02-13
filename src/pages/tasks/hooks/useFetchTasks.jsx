@@ -8,7 +8,9 @@ const useFetchTasks = (retryCount,setShowError) => {
 
   useEffect(() => {
     console.log('Fetching tasks...');
+    
     const fetchTasks = async () => {
+     
       try {
         // Fetch tasks with related department data
         let { data: tasks, error } = await supabase
@@ -25,25 +27,29 @@ const useFetchTasks = (retryCount,setShowError) => {
             department (
               name
             )
-          `);
+          `)
+          .is('deleted_at', null); // Exclude soft-deleted tasks;
 
-
-        if (error) {
-          throw error;
-        }
+          if (error) {
+            throw error;}
+          
+      
 
         // Update state with fetched tasks
         setError(null);
         setTasks(tasks);
+        // setShowSuccess({state : true, message : "Task status updated successfully!"})
       } catch (err) {
-        setError(err.message);
-        setShowError(true);
+
+          setError(err.message);
+        
+        setShowError({state : true, message : `${err}`})
       } finally {
         setLoading(false);
       }
     };
-
     fetchTasks();
+
   }, [retryCount]);
   
 

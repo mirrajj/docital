@@ -3,16 +3,16 @@ import Sidebar from '../common/sidebar';
 import MobileHeader from '../common/header/MobileHeader';
 
 
-const AdminLayout = ({children}) => {
+const AdminLayout = ({children,page}) => {
     
     return (
         <div>
             {/* //Backdrop for the modal */}
-            <div id="backdrop" className={`hidden fixed inset-0 bg-black bg-opacity-50 z-10 backdrop`}></div>
+            <div id="backdrop" className={`hidden fixed inset-0 bg-black bg-opacity-50 z-30 backdrop`}></div>
             <div className='flex'>
                 <Sidebar />
                 <div className='w-full lg:overflow-y-scroll lg:h-screen'>
-                    <MobileHeader />
+                    <MobileHeader page={page}/>
                     <div className='container my-0 mx-auto'>
                         {children}
                     </div>

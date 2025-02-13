@@ -5,7 +5,7 @@ const useUpdateTaskStatus = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const updateTaskStatus = async (taskId, checked) => {
+  const updateTaskStatus = async (taskId, checked,setShowSuccess,setShowError) => {
     setLoading(true);
     setError(null);
     console.log('Task ID:', taskId);
@@ -23,9 +23,11 @@ const useUpdateTaskStatus = () => {
       }
 
       console.log('Task status updated successfully!');
+      setShowSuccess({state : true, message : "Task status updated successfully!"})
     } catch (err) {
       setError(err.message);
       console.error('Error updating task status:', err);
+      setShowError({state : true, message : `${err}`})
     } finally {
       setLoading(false);
     }

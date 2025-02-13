@@ -15,12 +15,12 @@ const StyledSwitch = styled(Switch)(({ theme }) => ({
   },
 }));
 
-const TaskSwitch = ({ checked, updateTaskStatus, itemID }) => {
+const TaskSwitch = ({ checked, updateTaskStatus, itemID,setShowSucess,setShowError }) => {
   const [ischecked, setIsChecked] = useState(checked);
 
   const onChange = (e) => {
     setIsChecked(!ischecked);
-    updateTaskStatus(itemID, !ischecked);
+    updateTaskStatus(itemID, !ischecked,setShowSucess,setShowError);
   };
 
 

@@ -12,7 +12,8 @@ export default {
         'primaryDark': '#17612B',
         'primaryLight': '#16A34A',
         'primaryLighter': '#34A853',
-        'primaryFaint' : '#34a85321'
+        'primaryFaint' : '#34a85321',
+        'backgroundColor': '#f5f5f5',
       },
       boxShadow : {
         'darker' : '4px 2px 11px 1px rgba(0, 0, 0, 0.44)',
@@ -20,7 +21,7 @@ export default {
         'light' : '0px 0px 4px 2px rgba(0, 0, 0, 0.25)'
       },
       backgroundImage : {
-        'sidebar-gradient' : 'linear-gradient(to bottom, #17612b 9%, #16a34a 33%, #34a853 95%, #000000 100%)',
+        'sidebar-gradient' : 'linear-gradient(to bottom, #17612b 9%, #16a34a 33%, #34a853 95%, #34a853 100%)',
       },
       maxWidth : {
         '75' : '75%',

@@ -3,10 +3,10 @@ import CircularProgress, {
     circularProgressClasses,
 } from '@mui/material/CircularProgress';
 
-const  LoadingSpinner = ({size}) => {
+const  LoadingSpinner = ({size,spinnerStyle}) => {
 
     return (
-        <div className='flex justify-center items-center'>
+        <div className={`${spinnerStyle} ? ${spinnerStyle} : "flex justify-center items-center"`}>
             <svg width={0} height={0}>
                 <defs>
                     <linearGradient id="my_gradient" x1="0%" y1="0%" x2="0%" y2="100%">
