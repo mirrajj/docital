@@ -10,7 +10,7 @@ import {
     useCustom,
 } from "@table-library/react-table-library/table";
 import useFetchTasks from '../hooks/useFetchTasks';
-import { MdEdit,MdSearch,MdDeleteOutline,MdArrowDropDown,MdArrowRight } from 'react-icons/md';
+import { MdEdit, MdSearch, MdDeleteOutline, MdArrowDropDown, MdArrowRight } from 'react-icons/md';
 import { useTheme } from '@table-library/react-table-library/theme';
 import { DataContext } from '../../../utils/DataContext';
 import TaskDetailsModal from './TaskDetailsModal';
@@ -24,23 +24,23 @@ import useDeleteTask from '../hooks/useDeleteTask';
 
 
 
-const TaskList2 = ({ onClick, setTaskDetails, setSubtasks,setCurrentTaskID,setShowError,setShowSuccess,currentID,setShowForm,setDataFields }) => {
+const TaskList2 = ({ onClick, setTaskDetails, setSubtasks, setCurrentTaskID, setShowError, setShowSuccess, currentID, setShowForm, setDataFields }) => {
     const { handleEditTask, loading: editLoading, error: editError } = useEditTask();
     const { updateTaskStatus, loading: updateLoading, error: updateError } = useUpdateTaskStatus();
     const { deleteTask, loading: deleteLoading, error: deleteError } = useDeleteTask();
     const { showModal } = useContext(DataContext);
-    const [showConfirmModal,setShowConfirmModal] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [retryCount, setRetryCount] = useState(0);
     const [search, setSearch] = useState("");
     const [taskName, setTaskName] = useState([]);
     const [nodes, setNodes] = useState([]);
     const maxRetries = 3;
-    const { tasks, loading, error } = useFetchTasks(retryCount,setShowError);
+    const { tasks, loading, error } = useFetchTasks(retryCount, setShowError);
 
     useEffect(() => {
         setNodes(tasks);
         console.log("inside useEffect");
-    }, [tasks,retryCount]);
+    }, [tasks, retryCount]);
 
     const tableTheme = {
         Table: ``,
@@ -91,13 +91,13 @@ const TaskList2 = ({ onClick, setTaskDetails, setSubtasks,setCurrentTaskID,setSh
         }
     };
 
-    const handleEditButtonClicked = async (elementID,taskID) => {
+    const handleEditButtonClicked = async (elementID, taskID) => {
         setCurrentTaskID(taskID);
-         const response = await handleEditTask(taskID,setTaskDetails, setSubtasks,setShowError,setShowSuccess);
+        const response = await handleEditTask(taskID, setTaskDetails, setSubtasks, setShowError, setShowSuccess);
         if (response === "success") {
             onClick(elementID);
             showModal();
-        }else {
+        } else {
             setCurrentTaskID(null);
             // Reset states in case of prompt edit button clicking from the creating of tasks
             setTaskDetails({
@@ -120,7 +120,7 @@ const TaskList2 = ({ onClick, setTaskDetails, setSubtasks,setCurrentTaskID,setSh
     }
     const handleTaskDelete = async (taskID) => {
         // setCurrentTaskID(taskID);
-        await deleteTask(taskID,setShowError,setShowSuccess,setShowConfirmModal);
+        await deleteTask(taskID, setShowError, setShowSuccess, setShowConfirmModal);
     }
     const handleDeleteButtonClicked = (taskID) => {
         setCurrentTaskID(taskID);
@@ -184,9 +184,9 @@ const TaskList2 = ({ onClick, setTaskDetails, setSubtasks,setCurrentTaskID,setSh
                                         <Cell>{item.department.name}</Cell>
                                         <Cell>
                                             <div onClick={() => setCurrentTaskID(item.task_id)}>
-                                            {
-                                                updateLoading && currentID === item.task_id ? ( <LoadingSpinner size={20} /> ) : (<TaskSwitch setShowError={setShowError} setShowSucess={setShowSuccess} itemID = {item.task_id} checked = {item.active} updateTaskStatus={updateTaskStatus} />)
-                                            }
+                                                {
+                                                    updateLoading && currentID === item.task_id ? (<LoadingSpinner size={20} />) : (<TaskSwitch setShowError={setShowError} setShowSucess={setShowSuccess} itemID={item.task_id} checked={item.active} updateTaskStatus={updateTaskStatus} />)
+                                                }
                                             </div>
                                         </Cell>
                                         <Cell>
@@ -213,13 +213,13 @@ const TaskList2 = ({ onClick, setTaskDetails, setSubtasks,setCurrentTaskID,setSh
                                                                 onClick={() => handleDeleteButtonClicked(item.task_id)}
                                                             />
                                                         </span>
-                                                            <span onClick={() => handleExpand(item)} className="cursor-pointer">
-                                                                {taskName.includes(item.task_name) ? (
-                                                                    <MdArrowDropDown size="20" className='hover:opacity-50' />
-                                                                ) : (
-                                                                    <MdArrowRight size="20" className='hover:opacity-50' />
-                                                                )}
-                                                            </span>
+                                                        <span onClick={() => handleExpand(item)} className="cursor-pointer">
+                                                            {taskName.includes(item.task_name) ? (
+                                                                <MdArrowDropDown size="20" className='hover:opacity-50' />
+                                                            ) : (
+                                                                <MdArrowRight size="20" className='hover:opacity-50' />
+                                                            )}
+                                                        </span>
                                                     </>
                                                 )}
                                             </div>

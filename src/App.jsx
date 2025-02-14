@@ -20,7 +20,7 @@ function App() {
         {/* <MobileHeader /> */}
         {/* <Sidebar /> */}
         {/* <Nav /> */}
-        <AdminLayout page="Task"><Task /></AdminLayout>
+        <AdminLayout page="Monitoring"><Monitoring /></AdminLayout>
         
       </div>
     </DataProvider>
