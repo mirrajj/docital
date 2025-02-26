@@ -17,6 +17,7 @@ const Task = () => {
     const [showSuccess, setShowSuccess] = useState({state: false, message : ""});
     const [showError, setShowError] = useState({state: false, message : ""});
     const [ dataFields,setDataFields ] = useState([]);
+    const [step, setStep] = useState(1);
     const [taskDetails, setTaskDetails] = useState({
         name: "",
         department: "",
@@ -31,9 +32,10 @@ const Task = () => {
         instructionFile: null,
     });
 
-    const onClick = (id) => {
-        setBtnType(id);
+    const onClick = (id_name) => {
+        setBtnType(id_name);
         setShowForm(true);
+        setStep(1);
     }
 
     // console.log(subtasks);
@@ -90,7 +92,8 @@ const Task = () => {
                 setShowError={setShowError}
                 setShowForm={setShowForm}
                 btnType={btnType}
-                // handleCancel={handleCancel}
+                step = {step}
+                setStep={setStep}
                 setSubtasks={setSubtasks}
                 setTaskDetails={setTaskDetails}
                 dataFields = {dataFields}
@@ -103,6 +106,8 @@ const Task = () => {
                 onClick={onClick}
                 setShowError={setShowError}
                 setShowSuccess={setShowSuccess}
+                step = {step}
+                setStep={setStep}
                 setSubtasks={setSubtasks}
                 dataFields = {dataFields}
                 setDataFields = {setDataFields}

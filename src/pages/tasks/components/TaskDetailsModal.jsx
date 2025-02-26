@@ -9,11 +9,16 @@ const TaskDetailsModal = ({item}) => {
 
     </td>
       <td className='text-primaryDark w-full text-xs flex flex-col gap-2 list-none'>
+        <h4 className="font-bold text-xs">About Task {item.task_name}</h4>
+        <span className={`ml-2 inline-block h-3 w-3 absolute bottom-2 right-4  ${item.active ? "bg-green-500" : "bg-yellow-400"} rounded-full animate-pulse`}></span>
+        <hr />
         <li>Name : <strong>{item.task_name}</strong></li>
         <li>Title : <strong>{item.description}</strong></li>
         <li>Completion Window : <strong>{item.completion_window}</strong></li>
         <li>Frequency : <strong>{item.frequency}</strong></li>
         <li>Last Paused : <strong>{item.paused_at}</strong></li>
+        <hr />
+        <p></p>
       </td>
       
     </tr>

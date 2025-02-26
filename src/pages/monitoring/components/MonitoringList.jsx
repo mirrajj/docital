@@ -40,13 +40,19 @@ const MonitoringList = ({ setShowError, setShowSuccess }) => {
 
     const tableTheme = {
         Table: `
-            // background : white;
+             color : #17612B;
+            font-family : sans-serif;
+            background-color : white;
+            border : 1px solid #e5e7eb;
+            border-radius : 10px;
+            margin-top : 10px;
         `,
         Row: `
-          background : ;
-          font-size : 14px;
+           background: ;
+          font-size: 12px;
+        //   color: #34a853;
           color : #9ca3af;
-          font-weight : 500;
+          font-weight: 500;
   
           @media (min-width : 1024px) {
            &:nth-of-type(odd) {
@@ -60,10 +66,12 @@ const MonitoringList = ({ setShowError, setShowSuccess }) => {
         `,
         HeaderRow: `
                  font-weight: 300;
-               //   color : #34a553;
-                 color: #9ca3af;
-                 background: transparent;
-                 border-bottom: 1px solid black;
+               /  font-weight: 200;
+          font-size : 13px;
+          color : #16a34a;
+          background: #e5e7eb;
+          border-radius : 15px;
+          border-bottom: 1px solid black;
                `,
         BaseCell: `
           padding : 12px 5px;
@@ -108,7 +116,11 @@ const MonitoringList = ({ setShowError, setShowSuccess }) => {
         console.log(action, state);
     }
     return (
-        <div className='container mx-auto p-2 pt-8 bg-white rounded-lg my-8 border border-x-0'>
+        <div className='container mx-auto p-2 bg-transparent rounded-lg my-8 border border-x-0'>
+              <div className="flex-1">
+                    <h2 className="text-xl font-semibold text-gray-500">Ongoing Tasks</h2>
+                    <p className="text-sm text-gray-500 mt-1">Track and verify the progress of monitored Tasks</p>
+                </div>
             <Table data={data} sort={sort} theme={theme}>
                 {(tableList) => (
                     <>

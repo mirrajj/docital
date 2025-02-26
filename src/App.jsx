@@ -17,10 +17,13 @@ function App() {
   return (
     <DataProvider>
       <div className='App'>
-        {/* <MobileHeader /> */}
-        {/* <Sidebar /> */}
-        {/* <Nav /> */}
-        <AdminLayout page="Monitoring"><Monitoring /></AdminLayout>
+        <Routes>
+          
+          <Route path="/" element={<AdminLayout page="Task"><Task /></AdminLayout> }/>
+          <Route path='/monitoring' element={<AdminLayout page={"Monitoring"}><Monitoring /></AdminLayout>} />
+          <Route path='/record' element={<AdminLayout page={"Records"}><Record /></AdminLayout>} />
+          
+        </Routes>
         
       </div>
     </DataProvider>

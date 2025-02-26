@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import Switch from '@mui/material/Switch';
 import { styled } from '@mui/material/styles';
 
@@ -16,16 +16,21 @@ const StyledSwitch = styled(Switch)(({ theme }) => ({
 }));
 
 const TaskSwitch = ({ checked, updateTaskStatus, itemID,setShowSucess,setShowError }) => {
-  const [ischecked, setIsChecked] = useState(checked);
+  const [isChecked,setIsChecked] = useState(null);
 
-  const onChange = (e) => {
-    setIsChecked(!ischecked);
-    updateTaskStatus(itemID, !ischecked,setShowSucess,setShowError);
+  useEffect(() => {
+    setIsChecked(checked);
+  }, []);
+
+  const onChange = () => {
+    const newCheckedState = !checked;
+    setIsChecked(newCheckedState);
+    updateTaskStatus(itemID, newCheckedState, setShowSucess, setShowError);
   };
 
 
   return (
-    <StyledSwitch color="primary" onChange={(e) => onChange(e)} size="small" checked={ischecked} />
+    <StyledSwitch color="primary" onChange={(e) => onChange(e)} size="small" checked={isChecked} />
   );
 }
 

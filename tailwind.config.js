@@ -14,6 +14,7 @@ export default {
         'primaryLighter': '#34A853',
         'primaryFaint' : '#34a85321',
         'backgroundColor': '#f5f5f5',
+        'wheat' : 'wheat',
       },
       boxShadow : {
         'darker' : '4px 2px 11px 1px rgba(0, 0, 0, 0.44)',

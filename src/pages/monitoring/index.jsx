@@ -24,7 +24,6 @@ const Monitoring = () => {
           onClose={() => setShowSuccess(false)}
         />
       )}
-        <MonitoringHeader />
         <MonitoringList setShowError={setShowError} setShowSuccess={setShowSuccess} />
     </div>
   );

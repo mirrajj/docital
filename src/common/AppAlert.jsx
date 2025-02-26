@@ -6,6 +6,7 @@ const AppAlert = ({ type, message, duration = 3000, onClose }) => {
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
 
   useEffect(() => {
+    
     const timer = setTimeout(() => {
       setIsAnimatingOut(true); // Start slide-out animation
       setTimeout(() => {

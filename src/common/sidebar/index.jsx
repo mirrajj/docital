@@ -33,17 +33,16 @@ const Sidebar = () => {
   }, [])
 
     const navItems = [
-        {icon : <FaHome className='size-5'/> , label : 'Home', link : '/dashboard'},
-        {icon : <FaList className='size-5'/>, label : 'Task', link : '/dashboard'},
-        {icon : <FaFileAlt className='size-5'/>, label : 'Report', link : '/dashboard'},
-        {icon : <MdFolder className='size-5'/>, label : 'Files', link : '/dashboard'},
-        {icon : <FaChartLine className='size-5'/>, label : 'Monitoring', link : '/dashboard'},
-        {icon : <MdAssignment className='size-5'/>, label : 'Audits', link : '/dashboard'},
-        {icon : <FaUsers className='size-5'/>, label : 'Manage Users', link : '/dashboard'},
-        {icon : <MdLibraryBooks className='size-5'/>, label : 'Records', link : '/dashboard'},
-        {icon : <FaUser className='size-5'/>, label : 'Profile', link : '/dashboard'},
-        {icon : <FaUser className='size-5'/>, label : 'test', link : '/dashboard'},
-        {icon : <FaUser className='size-5'/>, label : 'extra', link : '/dashboard'},
+        {icon : <FaHome className='size-5'/> , label : 'Home', link : '/'},
+        {icon : <FaList className='size-5'/>, label : 'Task', link : '/'},
+        {icon : <FaFileAlt className='size-5'/>, label : 'Report', link : '/'},
+        {icon : <MdFolder className='size-5'/>, label : 'Files', link : '/'},
+        {icon : <FaChartLine className='size-5'/>, label : 'Monitoring', link : '/monitoring'},
+        {icon : <MdAssignment className='size-5'/>, label : 'Audits', link : '/'},
+        {icon : <FaUsers className='size-5'/>, label : 'Manage Users', link : '/'},
+        {icon : <MdLibraryBooks className='size-5'/>, label : 'Records', link : '/record'},
+        {icon : <FaUser className='size-5'/>, label : 'Profile', link : '/'},
+
     ]
   return (
     <div className = "max-w-56 bg-sidebar-gradient border-r-slate-200 shadow-dark h-screen sidebar">
