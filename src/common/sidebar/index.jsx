@@ -34,8 +34,8 @@ const Sidebar = () => {
 
     const navItems = [
         {icon : <FaHome className='size-5'/> , label : 'Home', link : '/'},
-        {icon : <FaList className='size-5'/>, label : 'Task', link : '/'},
-        {icon : <FaFileAlt className='size-5'/>, label : 'Report', link : '/'},
+        {icon : <FaList className='size-5'/>, label : 'Task', link : '/task'},
+        {icon : <FaFileAlt className='size-5'/>, label : 'Report', link : '/report'},
         {icon : <MdFolder className='size-5'/>, label : 'Files', link : '/'},
         {icon : <FaChartLine className='size-5'/>, label : 'Monitoring', link : '/monitoring'},
         {icon : <MdAssignment className='size-5'/>, label : 'Audits', link : '/'},

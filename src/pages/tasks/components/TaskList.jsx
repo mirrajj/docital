@@ -17,7 +17,7 @@ import TaskDetailsModal from './TaskDetailsModal';
 import LoadingSpinner from '../../../common/LoadingSpinner';
 import TaskSwitch from './TaskSwitch';
 import useEditTask from '../hooks/useEditTask';
-import TableLoadingSkeleton from '../../components/TableLoadingSkeleton';
+import TableLoadingSkeleton from '../../generalComponents/TableLoadingSkeleton';
 import useUpdateTaskStatus from '../hooks/useUpdateTaskStatus';
 import useDeleteTask from '../hooks/useDeleteTask';
 
