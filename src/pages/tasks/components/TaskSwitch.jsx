@@ -15,22 +15,21 @@ const StyledSwitch = styled(Switch)(({ theme }) => ({
   },
 }));
 
-const TaskSwitch = ({ checked, updateTaskStatus, itemID,setShowSucess,setShowError }) => {
-  const [isChecked,setIsChecked] = useState(null);
-
-  useEffect(() => {
-    setIsChecked(checked);
-  }, []);
+const TaskSwitch = ({ item, updateTaskStatus, itemID,setShowSucess,setShowError }) => {
+  const [isChecked,setIsChecked] = useState(item.active);
 
   const onChange = () => {
-    const newCheckedState = !checked;
-    setIsChecked(newCheckedState);
-    updateTaskStatus(itemID, newCheckedState, setShowSucess, setShowError);
+    // const newCheckedState = !isChecked;
+    // setIsChecked(newCheckedState);
+    updateTaskStatus(itemID, !isChecked, setShowSucess, setShowError);
   };
+
+  
+
 
 
   return (
-    <StyledSwitch color="primary" onChange={(e) => onChange(e)} size="small" checked={isChecked} />
+    <StyledSwitch color="primary" onChange={(e) => onChange(e)} size="small" checked={item.active} />
   );
 }
 

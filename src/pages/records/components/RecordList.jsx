@@ -1,9 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
-
-import RecordHeader from './RecordHeader';
+import React, { useState, useRef } from 'react';
 import useFetchRecords from '../hooks/useFetchRecords';
 import DynamicTable from './DynamicTable';
-import RecordsHeader2 from './RecordsHeader2';
+import RecordsHeader from './RecordsHeader';
 import {jsPDF}from 'jspdf';
 import html2canvas from 'html2canvas';
 import AppAlert from '../../../common/AppAlert';
@@ -71,8 +69,11 @@ const RecordList = () => {
     };
 
     const filterColumns = (columns) => {
-        const filteredColumns = columns.filter((column) => !column.includes("id"));
+        const filteredColumns = columns.filter((column) => !column.includes("ID"));
         return filteredColumns;
+    }
+    function formatText(str) {
+        return str.includes('_') ? str.replace(/_/g, ' ').toUpperCase() : str.toUpperCase();
     }
     
     const flattenData = (data) => {
@@ -81,10 +82,12 @@ const RecordList = () => {
             Object.keys(item).forEach((key) => {
                 if (typeof item[key] === 'object' && item[key] !== null) {
                     Object.keys(item[key]).forEach((nestedKey) => {
-                        flattened[`${key}`] = item[key][nestedKey]; //flattens the nested object but returns just the parent columns' key instead of concating with the nested key
+                        const formattedKey = formatText(key);
+                        flattened[formattedKey] = item[key][nestedKey]; //flattens the nested object but returns just the parent columns' key instead of concating with the nested key
                     });
                 } else {
-                    flattened[key] = item[key];
+                    const formattedKey = formatText(key);
+                    flattened[formattedKey] = item[key];
                 }
             });
             // console.log(flattened);
@@ -101,10 +104,10 @@ const RecordList = () => {
 
         // Reset to the first page when the category changes
         setCurrentPage(1);
+
        
         const result = await fetchData(category,filterField ,filterValue,currentPage,itemsPerPage,start_date,end_date);
-        // console.log(result);
-        const flattenedData = flattenData(result || []);
+        const flattenedData = flattenData(result ? result : []);
         setData({nodes : flattenedData || []});
 
         if (flattenedData.length > 0) {
@@ -118,11 +121,10 @@ const RecordList = () => {
     const onPaginationChange = async  (newPage) =>  {
         setCurrentPage(newPage);
         const result = await fetchData(currentTable,currentFilterField ,currentFilterValue,newPage,itemsPerPage);
-        // console.log(result);
-        const flattenedData = flattenData(result || []);
+        const flattenedData = flattenData(result ? result : []);
         setData({nodes : flattenedData || []});
     }
-    console.log(loading);
+    
 
     return (
         <>
@@ -134,7 +136,7 @@ const RecordList = () => {
                     onClose={() => setShowError(false)}
                 />
             )}
-            <RecordsHeader2 onCategoryChange={handleCategoryChange} handleDownloadPdf={handleDownloadPdf} />
+            <RecordsHeader onCategoryChange={handleCategoryChange} handleDownloadPdf={handleDownloadPdf} />
             {
                 loading ? (
                     
@@ -191,7 +193,7 @@ const RecordList = () => {
                         </table>
                     </div>
                 ) : (
-                    <DynamicTable data={data.nodes} columns={columns} tableRef={tableRef} />
+                    <DynamicTable data={data.nodes} columns={columns} tableRef={tableRef} title={currentTable} />
                 )
             }
             {/* Pagination Controls */}

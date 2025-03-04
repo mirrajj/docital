@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import supabase from '@/config/supabaseClient';
 
 const useTaskStatusData = () => {
-  const [chartData, setChartData] = useState([]); // For the first use case (chart)
+  const [chartData, setChartData] = useState([]); // For the first use case (task cards)
   const [taskData, setTaskData] = useState({ // For the second use case (task status overview)
     pending: { count: 0 },
     completed: { count: 0 },

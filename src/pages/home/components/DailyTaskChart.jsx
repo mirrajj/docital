@@ -15,104 +15,10 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
-  Legend
+  ResponsiveContainer
 } from "recharts";
+import { AlertCircle } from "lucide-react";
 import useDailyTaskData from "../hooks/useDailyTaskData";
-
-// Mock data for hourly task completion by department
-const mockHourlyData = [
-  { 
-    hour: '8 AM', 
-    cleaning: 4, 
-    processing: 3, 
-    drying: 2, 
-    finishedProduct: 1, 
-    rawMaterial: 3, 
-    generalOffice: 5 
-  },
-  { 
-    hour: '9 AM', 
-    cleaning: 7, 
-    processing: 6, 
-    drying: 4, 
-    finishedProduct: 3, 
-    rawMaterial: 5, 
-    generalOffice: 8 
-  },
-  { 
-    hour: '10 AM', 
-    cleaning: 5, 
-    processing: 8, 
-    drying: 6, 
-    finishedProduct: 4, 
-    rawMaterial: 6, 
-    generalOffice: 3 
-  },
-  { 
-    hour: '11 AM', 
-    cleaning: 8, 
-    processing: 7, 
-    drying: 5, 
-    finishedProduct: 6, 
-    rawMaterial: 4, 
-    generalOffice: 2 
-  },
-  { 
-    hour: '12 PM', 
-    cleaning: 3, 
-    processing: 4, 
-    drying: 3, 
-    finishedProduct: 2, 
-    rawMaterial: 2, 
-    generalOffice: 1 
-  },
-  { 
-    hour: '1 PM', 
-    cleaning: 6, 
-    processing: 5, 
-    drying: 4, 
-    finishedProduct: 3, 
-    rawMaterial: 3, 
-    generalOffice: 2 
-  },
-  { 
-    hour: '2 PM', 
-    cleaning: 9, 
-    processing: 7, 
-    drying: 6, 
-    finishedProduct: 5, 
-    rawMaterial: 4, 
-    generalOffice: 3 
-  },
-  { 
-    hour: '3 PM', 
-    cleaning: 5, 
-    processing: 6, 
-    drying: 7, 
-    finishedProduct: 8, 
-    rawMaterial: 5, 
-    generalOffice: 4 
-  },
-  { 
-    hour: '4 PM', 
-    cleaning: 3, 
-    processing: 4, 
-    drying: 5, 
-    finishedProduct: 6, 
-    rawMaterial: 3, 
-    generalOffice: 7 
-  },
-  { 
-    hour: '5 PM', 
-    cleaning: 2, 
-    processing: 3, 
-    drying: 4, 
-    finishedProduct: 5, 
-    rawMaterial: 2, 
-    generalOffice: 6 
-  },
-];
 
 const chartConfig = {
   tasks: {
@@ -130,88 +36,151 @@ const chartConfig = {
     label: "Drying",
     color: "hsl(var(--chart-3))",
   },
-  finishedProduct: {
+  finished: {
     label: "Finished Product",
     color: "hsl(var(--chart-4))",
   },
-  rawMaterial: {
+  raw: {
     label: "Raw Material",
     color: "hsl(var(--chart-5))",
   },
-  generalOffice: {
+  general: {
     label: "General Office",
     color: "hsl(var(--chart-6))",
   }
 };
 
 const DailyTaskChart = () => {
-  const {hourlyData,loading,error} = useDailyTaskData();
+  const {hourlyData, loading, error} = useDailyTaskData();
   
   const [activeChart, setActiveChart] = useState("cleaning");
 
-  const total = useMemo(() => ({
-    cleaning: hourlyData.reduce((acc, curr) => acc + curr.cleaning, 0),
-    processing: hourlyData.reduce((acc, curr) => acc + curr.processing, 0),
-    drying: hourlyData.reduce((acc, curr) => acc + curr.drying, 0),
-    finishedProduct: hourlyData.reduce((acc, curr) => acc + curr.finished, 0),
-    rawMaterial: hourlyData.reduce((acc, curr) => acc + curr.raw, 0),
-    generalOffice: hourlyData.reduce((acc, curr) => acc + curr.general, 0),
-  }), [hourlyData]);
-
-//   console.log(hourlyData);
+  const total = useMemo(() => {
+    if (!hourlyData || hourlyData.length === 0) {
+      return {
+        cleaning: 0,
+        processing: 0,
+        drying: 0,
+        finished: 0,
+        raw: 0,
+        general: 0,
+      };
+    }
+    
+    return {
+      cleaning: hourlyData.reduce((acc, curr) => acc + (curr.cleaning || 0), 0),
+      processing: hourlyData.reduce((acc, curr) => acc + (curr.processing || 0), 0),
+      drying: hourlyData.reduce((acc, curr) => acc + (curr.drying || 0), 0),
+      finished: hourlyData.reduce((acc, curr) => acc + (curr.finished || 0), 0),
+      raw: hourlyData.reduce((acc, curr) => acc + (curr.raw || 0), 0),
+      general: hourlyData.reduce((acc, curr) => acc + (curr.general || 0), 0),
+    };
+  }, [hourlyData]);
 
   // Array of department keys for easy mapping
-  const departments = ["cleaning", "processing", "drying", "finishedProduct", "rawMaterial", "generalOffice"];
+  const departments = ["cleaning", "processing", "drying", "finished", "raw", "general"];
+
+  // Render loading skeleton
+  const renderLoading = () => (
+    <div className="px-2 sm:p-6">
+      <div className="animate-pulse space-y-4">
+        <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+        <div className="grid grid-cols-7 gap-4 mb-6">
+          {[...Array(7)].map((_, i) => (
+            <div key={i} className="h-4 bg-gray-200 rounded"></div>
+          ))}
+        </div>
+        
+        {/* Chart bars skeleton */}
+        <div className="h-60 flex items-end space-x-2">
+          {[...Array(12)].map((_, i) => (
+            <div 
+              key={i} 
+              className="bg-gray-200 rounded w-full" 
+              style={{ height: `${Math.random() * 60 + 20}%` }}
+            ></div>
+          ))}
+        </div>
+        
+        {/* X-axis labels skeleton */}
+        <div className="grid grid-cols-12 gap-2 mt-2">
+          {[...Array(12)].map((_, i) => (
+            <div key={i} className="h-4 bg-gray-200 rounded"></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  // Render error state
+  const renderError = () => (
+    <div className="px-6 py-10 flex flex-col items-center justify-center">
+      <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
+      <h3 className="text-lg font-medium text-red-500 mb-2">Failed to load chart data</h3>
+      <p className="text-sm text-gray-500 text-center max-w-md">
+        There was a problem loading the hourly task data. Please try refreshing the page or contact support if the problem persists.
+      </p>
+    </div>
+  );
 
   return (
     <Card className="h-full">
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5">
-          <CardTitle>Hourly Task Completion</CardTitle>
+          <CardTitle className="tracking-wider text-gray-500">Hourly Task Completion</CardTitle>
           <CardDescription>
             Tasks completed by hour across departments
           </CardDescription>
         </div>
-        <div className="grid grid-cols-3 sm:grid-cols-6">
-          {departments.map((key) => (
-            <button
-              key={key}
-              data-active={activeChart === key}
-              className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-4 py-3 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-4 sm:py-4"
-              onClick={() => setActiveChart(key)}
-            >
-              <span className="text-xs text-muted-foreground truncate">
-                {chartConfig[key].label}
-              </span>
-              <span className="text-lg font-bold leading-none sm:text-xl">
-                {total[key].toLocaleString()}
-              </span>
-            </button>
-          ))}
-        </div>
+        
+          <div className="grid grid-cols-3 sm:grid-cols-6">
+            {departments.map((key) => (
+              <button
+                key={key}
+                data-active={activeChart === key}
+                className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-4 py-3 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-4 sm:py-4"
+                onClick={() => setActiveChart(key)}
+              >
+                <span className="text-xs text-muted-foreground truncate">
+                  {chartConfig[key].label}
+                </span>
+                <span className="text-lg font-bold leading-none sm:text-xl">
+                  {total[key].toLocaleString()}
+                </span>
+              </button>
+            ))}
+          </div>
+        
       </CardHeader>
+      
       <CardContent className="px-2 sm:p-6">
-        <div className="h-80 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={hourlyData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid vertical={false} strokeDasharray="3 3" />
-              <XAxis dataKey="hour" tickLine={false} axisLine={false} tickMargin={8} />
-              <YAxis tickLine={false} axisLine={false} tickMargin={8} />
-              <Tooltip 
-                formatter={(value) => [`${value} tasks`, chartConfig[activeChart].label]}
-                labelFormatter={(value) => `Hour: ${value}`}
-              />
-              <Bar 
-                dataKey={activeChart} 
-                fill={chartConfig[activeChart].color} 
-                radius={[0, 0, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        {loading ? (
+          renderLoading()
+        ) : error ? (
+          renderError()
+        ) : (
+          <div className="h-80 w-full">
+            <ResponsiveContainer className=" w-full text-sm">
+              <BarChart
+                data={hourlyData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                <XAxis dataKey="hour" tickLine={false} axisLine={false} tickMargin={8} />
+                <YAxis tickLine={false} axisLine={false} tickMargin={8} />
+                <Tooltip 
+                  formatter={(value) => [`${value} tasks`, chartConfig[activeChart].label]}
+                  labelFormatter={(value) => `Hour: ${value}`}
+                />
+                <Bar 
+                  dataKey={activeChart} 
+                  fill={chartConfig[activeChart].color} 
+                  radius={[0, 0, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

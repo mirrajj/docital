@@ -4,7 +4,7 @@ import useFetchData from "../hooks/useFetchData"; // Custom hook for fetching da
 import { MdRefresh } from "react-icons/md";
 import AppAlert from "../../../common/AppAlert";
 
-const RecordsHeader2 = ({ onCategoryChange, onDateFilter, handleDownloadPdf }) => {
+const RecordsHeader = ({ onCategoryChange, onDateFilter, handleDownloadPdf }) => {
   const [showError, setShowError] = useState({state: false, message : ""});
   const [retryCount, setRetryCount] = useState(0);
 
@@ -92,6 +92,10 @@ const RecordsHeader2 = ({ onCategoryChange, onDateFilter, handleDownloadPdf }) =
             filterValue = fieldVal;
         }
         onCategoryChange(tableName, filterField, filterValue, startDate, endDate); // Notify parent component
+
+        //Reset start and end dates
+        setStartDate("");
+        setEndDate("");
 
     } else if (selectedTable !== "") {
         console.log(selectedTable);
@@ -231,11 +235,11 @@ const RecordsHeader2 = ({ onCategoryChange, onDateFilter, handleDownloadPdf }) =
                   )}
 
                   {/* Date filter icon and dropdown */}
-                  <div className="self-end relative border-gray-300 ml-auto">
+                  <div className="self-end relative border-gray-300 ml-auto ">
                       {/* Funnel icon to toggle date filter dropdown */}
                       <button
                           onClick={() => setShowDateFilter(!showDateFilter)}
-                          className="p-2 text-gray-600 hover:text-green-500 focus:outline-none border rounded-md focus:ring-2 focus:ring-green-500 transition-colors duration-200"
+                          className="p-2 text-gray-600 border-gray-200 border rounded-md hover:text-green-500 hover:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200"
                           aria-label="Filter by date"
                           title="Filter by date"
                       >
@@ -321,4 +325,4 @@ const RecordsHeader2 = ({ onCategoryChange, onDateFilter, handleDownloadPdf }) =
   );
 };
 
-export default RecordsHeader2;
+export default RecordsHeader;

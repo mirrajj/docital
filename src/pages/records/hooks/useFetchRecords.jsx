@@ -24,7 +24,7 @@ const useFetchRecords = (setShowError) => {
                 .from(tableName)
                 .select(`
                   verified_at,
-                  completion_time,
+                  date:completed_at,
                   completion_notes,
                   task:task_id(task_name),
                   verified_by:verified_by(name),
@@ -33,7 +33,6 @@ const useFetchRecords = (setShowError) => {
                 .range(offset, offset + limit - 1);
             } else {
                 // Default case: Select all columns, but check for foreign keys and join referenced tables
-                // console.log("fetching data collection task record");
 
                 // Step 1: Fetch the table_id based on the table_name
                 const { data: tableData, error: tableError } = await supabase
@@ -59,13 +58,13 @@ const useFetchRecords = (setShowError) => {
                 // Step 3: Build the select query, excluding original foreign key columns
                 const baseColumns = columnMetadata
                     .filter((column) => !column.reference_table) // Exclude foreign key columns
-                    .map((column) => column.column_name); // Get column names
+                    .map((column) => column.column_name === "created_at" ? `date : ${column.column_name}` : column.column_name); // Get column names
 
                 // Step 4: Build the select query with joins
                 let selectQuery = baseColumns.join(", "); // Start with selecting all columns
                 joinColumns.forEach((column) => {
                     // Add a join for each referenced table
-                    selectQuery += `, ${column.column_name}:${column.column_name} (${column.reference_column})`;
+                    selectQuery += `, ${column.column_name} :${column.column_name} (${column.reference_column})`;
                 });
                
                 // Step 5: Execute the query

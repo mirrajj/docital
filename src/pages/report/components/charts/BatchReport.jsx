@@ -1,4 +1,4 @@
-"use client"
+  "use client"
 import React, { useState, useEffect } from 'react';
 import { PieChart, Pie } from 'recharts';
 import { TrendingUp, TrendingDown } from 'lucide-react';

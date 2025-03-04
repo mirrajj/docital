@@ -54,7 +54,7 @@ const useDailyTaskData = () => {
                         general: 0,
                     };
                 });
-                console.log(data);
+                
                 // Process each task completion
                 data.forEach(taskCompletion => {
                     let hourLabel;
@@ -68,7 +68,7 @@ const useDailyTaskData = () => {
                     }else{
                         hourLabel = hours[(hour - 8) + 1]; // Map hour (8-17) to '8 AM' - '5 PM'
                     }
-                    console.log(hourLabel);
+                    
                     const department = taskCompletion.task.department.name.toLowerCase().split(' ')[0];
                    
 

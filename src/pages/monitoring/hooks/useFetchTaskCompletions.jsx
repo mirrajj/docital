@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import supabase from '../../../config/supabaseClient';
 
 const useFetchTaskCompletions = () => {
+  const [pendingTasks, setPendingTasks] = useState([]);
   const [completions, setCompletions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -11,10 +12,25 @@ const useFetchTaskCompletions = () => {
     setError(null);
 
     try {
+      const { data: pendingTasks, error:pendingError } = await supabase
+        .from('task')
+          .select(`
+          task_name,
+          task_type,
+          department :department_id (name)
+        `)
+        .eq('status', 'pending')
+        
+
+      if (pendingError) throw pendingError;
+
+      setPendingTasks(pendingTasks);
+
       // Step 1: Fetch all task completions
       const { data: taskCompletions, error: completionError } = await supabase
         .from('task_completion')
-        .select('*');
+        .select('*')
+        .eq('verified',false);
 
       if (completionError) throw completionError;
 
@@ -67,11 +83,10 @@ const useFetchTaskCompletions = () => {
   };
 
   useEffect(() => {
-    console.log("use effect running")
     fetchTaskCompletions();
   }, []);
 
-  return { completions, loading, error, refetch: fetchTaskCompletions };
+  return { pendingTasks,completions, loading, error, refetch: fetchTaskCompletions };
 };
 
 export default useFetchTaskCompletions;

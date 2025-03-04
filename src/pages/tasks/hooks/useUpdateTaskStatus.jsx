@@ -9,7 +9,7 @@ const useUpdateTaskStatus = () => {
     setLoading(true);
     setError(null);
     console.log('Task ID:', taskId);
-    console.log('Checked:', checked);
+    // console.log('Checked:', checked);
 
     try {
       // Update the task's active status in the database
@@ -21,11 +21,9 @@ const useUpdateTaskStatus = () => {
       if (updateError) {
         throw updateError;
       }
-
-      console.log('Task status updated successfully!');
       setShowSuccess({state : true, message : "Task status updated successfully!"})
     } catch (err) {
-      setError(err.message);
+      // setError(err.message);
       console.error('Error updating task status:', err);
       setShowError({state : true, message : `${err}`})
     } finally {

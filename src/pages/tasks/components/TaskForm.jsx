@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { MdClose, MdDeleteOutline } from "react-icons/md";
 import useInsertTask from "../hooks/useInsertTasks";
 import useSubmitEditTask from "../hooks/useSubmitEditTask";
-import { data } from "react-router-dom";
 import ConfirmModal from "./ConfirmModal";
 import LoadingSpinner from "../../../common/LoadingSpinner";
 import supabase from "../../../config/supabaseClient";

@@ -3,41 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 import useIncidentsData from '../hooks/useIncidentsData';
 
-// Mock data for reported incidents
-const mockIncidentsData = [
-  {
-    id: 1,
-    title: 'Temperature deviation in storage area',
-    date: 'Feb 26, 2025',
-    severity: 'high',
-    status: 'resolved',
-    resolution: 'Cooling system repaired and temperature normalized'
-  },
-  {
-    id: 2,
-    title: 'Foreign object found during inspection',
-    date: 'Feb 25, 2025',
-    severity: 'medium',
-    status: 'resolved',
-    resolution: 'Production batch isolated and inspected'
-  },
-  {
-    id: 3,
-    title: 'Missing documentation for ingredient batch',
-    date: 'Feb 27, 2025',
-    severity: 'low',
-    status: 'pending',
-    resolution: null
-  },
-  {
-    id: 4,
-    title: 'Cross-contamination concern in Prep Area B',
-    date: 'Feb 27, 2025',
-    severity: 'high',
-    status: 'investigating',
-    resolution: null
-  }
-];
 
 // Helper function to get status icon
 const getStatusIcon = (status) => {
@@ -82,10 +47,9 @@ const ReportedIncidents = () => {
 
   return (
     <Card className="h-fit">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
         <div>
-          <CardTitle>Reported Incidents</CardTitle>
-          <CardDescription>Recent food safety and quality incidents</CardDescription>
+          <CardTitle className="tracking-wider text-gray-500 border-r">Reported Incidents</CardTitle>
         </div>
         <div className="flex space-x-2">
           {severityLevels.map(severity => (
@@ -137,7 +101,9 @@ const ReportedIncidents = () => {
           </div>
         ) : (
           <div className="text-center py-12 text-gray-500">
-            Select a severity level to view incidents
+            <p className='text-xs text-gray-400 '>Recent food safety and quality incidents</p>
+            <p>Select a severity level to view incidents</p>
+            
           </div>
         )}
       </CardContent>

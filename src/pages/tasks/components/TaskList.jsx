@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect,useMemo,useCallback } from 'react';
 import {
     Table,
     Header,
@@ -20,6 +20,7 @@ import useEditTask from '../hooks/useEditTask';
 import TableLoadingSkeleton from '../../generalComponents/TableLoadingSkeleton';
 import useUpdateTaskStatus from '../hooks/useUpdateTaskStatus';
 import useDeleteTask from '../hooks/useDeleteTask';
+import supabase from '@/config/supabaseClient';
 
 
 
@@ -54,6 +55,32 @@ const TaskList2 = ({ onClick,
         console.log("inside useEffect");
     }, [tasks, retryCount]);
 
+    //subcribing to real time changes 
+    useEffect(() => {
+        const channel = supabase
+        .channel("task-update-channel")
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "task" },
+          (payload) => {
+            // Use functional update to prevent stale state issues
+            setNodes(prevNodes => 
+                prevNodes.map(task => 
+                    task.task_id === payload.new.task_id ? {...task, active: payload.new.active} : task
+                )
+            );
+        }
+        )
+        .subscribe();
+  
+      return () => {
+        supabase.removeChannel(channel); // Cleanup subscription
+      };
+    },[])
+
+    // console.log(nodes);
+
+
     const tableTheme = {
         Table: `
              color : #17612B;
@@ -84,34 +111,40 @@ const TaskList2 = ({ onClick,
           border-bottom: 1px solid  #f5f5f5 ;
         `,
     };
-
+    
     const theme = useTheme([tableTheme]);
 
     const handleSearch = (event) => {
         setSearch(event.target.value);
     };
 
-    const data = {
-        nodes: nodes.filter((item) =>
-            item.task_name.toLowerCase().includes(search.toLowerCase())
-        ),
-    };
-
-    const handleExpand = (item) => {
-        if (taskName.includes(item.task_name)) {
-            setTaskName(taskName.filter((t) => t !== item.task_name));
-        } else {
-            setTaskName([...taskName, item.task_name]);
+    const data = useMemo(() => {
+       return {
+            nodes: nodes.filter((item) =>
+                item.task_name.toLowerCase().includes(search.toLowerCase())
+            ),
         }
-    };
+    },[nodes]) 
 
-    const handleRetry = () => {
+    console.log(data);
+
+    const handleExpand = useCallback((item) => {
+        setTaskName(prev => {
+            if (prev.includes(item.task_name)) {
+                return prev.filter((t) => t !== item.task_name);
+            } else {
+                return [...prev, item.task_name];
+            }
+        });
+    }, []);
+
+    const handleRetry = useCallback(() => {
         if (retryCount < maxRetries) {
-            setRetryCount(retryCount + 1);
+            setRetryCount(prev => prev + 1);
         }
-    };
+    }, [retryCount, maxRetries]);
 
-    const handleEditButtonClicked = async (elementID, taskID) => {
+    const handleEditButtonClicked = useCallback(async (elementID, taskID) => {
         setCurrentTaskID(taskID);
         setStep(1);
         const response = await handleEditTask(taskID, setTaskDetails, setSubtasks, setShowError, setShowSuccess);
@@ -138,11 +171,13 @@ const TaskList2 = ({ onClick,
             setDataFields([]);
             setShowForm(false);
         }
-    }
+    }, [handleEditTask, setCurrentTaskID, setStep, setTaskDetails, setSubtasks, setShowError, setShowSuccess, onClick, showModal, setShowForm, setDataFields]);
+
     const handleTaskDelete = async (taskID) => {
         // setCurrentTaskID(taskID);
         await deleteTask(taskID, setShowError, setShowSuccess, setShowConfirmModal);
     }
+
     const handleDeleteButtonClicked = (taskID) => {
         setCurrentTaskID(taskID);
         setShowConfirmModal(true);
@@ -159,23 +194,63 @@ const TaskList2 = ({ onClick,
         />);
     }
 
-
     return (
         <div className='container mx-auto p-2 pt-3 bg-transparent my-8 border-y border-gray'>
 
             {showConfirmModal && (
-
-                <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-                        <h3 className="text-xl font-bold mb-4 text-gray-500">Confirm Task Delete</h3>
-                        <p className="font-bold text-orange-400">Are you sure you want to delete this task?</p>
-                        <div className="mt-4 flex justify-center gap-4">
-                            <button className="btn-primary" onClick={() => handleTaskDelete(currentID)}>{deleteLoading ? <LoadingSpinner size={20} /> : "Yes, Delete"}</button>
-                            <button className="border-red-400 bg-transparent text-red-400 border px-3 rounded-lg" onClick={() => { setShowConfirmModal(false) }}>Cancel</button>
+                <div className="fixed inset-0 flex items-center justify-center z-40">
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowConfirmModal(false)} />
+                    <div className="bg-white dark:bg-slate-900 rounded-lg z-50 shadow-lg max-w-md w-full mx-4 overflow-hidden">
+                        <div className="p-6">
+                            <div className="flex flex-col items-center text-center space-y-4">
+                                <div className="p-3 bg-red-100 dark:bg-red-900/20 rounded-full">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        className="text-red-500"
+                                    >
+                                        <path d="M10.24 3.957l-8.422 14.06A1.989 1.989 0 0 0 3.518 21h16.845a1.989 1.989 0 0 0 1.7-2.983l-8.423-14.06a1.989 1.989 0 0 0-3.4 0z"></path>
+                                        <path d="M12 9v4"></path>
+                                        <path d="M12 17h.01"></path>
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Delete Task</h3>
+                                <p className="text-gray-500 dark:text-gray-400">Are you sure you want to delete this task? This action cannot be undone.</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center p-6 space-x-2 border-t border-gray-200 dark:border-gray-800">
+                            <button
+                                className="flex-1 px-4 py-2 text-sm font-medium text-gray-500 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-900 transition-colors"
+                                onClick={() => setShowConfirmModal(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-900 transition-colors"
+                                onClick={() => handleTaskDelete(currentID)}
+                            >
+                                {deleteLoading ? (
+                                    <div className="flex items-center justify-center space-x-2">
+                                        <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <span>Deleting...</span>
+                                    </div>
+                                ) : (
+                                    "Delete Task"
+                                )}
+                            </button>
                         </div>
                     </div>
                 </div>
-
             )}
 
             <div className="flex items-center justify-between mb-4">
@@ -225,7 +300,7 @@ const TaskList2 = ({ onClick,
                                 <HeaderCell>Type</HeaderCell>
                                 <HeaderCell>Department</HeaderCell>
                                 <HeaderCell>Active</HeaderCell>
-                                <HeaderCell>Edit</HeaderCell>
+                                <HeaderCell>Actions</HeaderCell>
                             </HeaderRow>
                         </Header>
 
@@ -237,10 +312,10 @@ const TaskList2 = ({ onClick,
                                         <Cell>{item.task_name}</Cell>
                                         <Cell>{item.task_type}</Cell>
                                         <Cell>{item.department.name}</Cell>
-                                        <Cell>
-                                            <div onClick={() => setCurrentTaskID(item.task_id)}>
+                                        <Cell  onClick={() => setCurrentTaskID(item.task_id)}>
+                                            <div>
                                                 {
-                                                    updateLoading && currentID === item.task_id ? (<LoadingSpinner size={20} />) : (<TaskSwitch setShowError={setShowError} setShowSucess={setShowSuccess} itemID={item.task_id} checked={item.active} updateTaskStatus={updateTaskStatus} />)
+                                                    updateLoading && currentID === item.task_id ? (<LoadingSpinner size={20} />) : (<TaskSwitch setShowError={setShowError} setShowSucess={setShowSuccess} itemID={item.task_id} item={item} updateTaskStatus={updateTaskStatus} />)
                                                 }
                                             </div>
                                         </Cell>
