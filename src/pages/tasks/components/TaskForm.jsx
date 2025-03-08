@@ -310,7 +310,7 @@ const TaskForm2 = ({ btnType,
         }
         setModalType("submit");
         setShowConfirmModal(true);
-        showModal();
+        // showModal();
     };
 
     return (
@@ -948,178 +948,219 @@ const TaskForm2 = ({ btnType,
                 </div>
                 
                 :
-                <div className="container text-xs lg:max-w-2xl lg:w-8/12 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-4 py-10 bg-white rounded-2xl shadow-darker h-screen  z-50 bg-gradient-to-b from-primaryFaint from-5% via-white">
+                <div className="container mx-auto">
+
                     {showConfirmModal && (
-                        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
-                            <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-                                <h3 className="text-xl font-bold mb-4 text-gray-500">Confirm Task Submission</h3>
-                                <p className="font-bold text-orange-400">Are you sure you want to submit this task?</p>
-                                <div className="mt-4 flex justify-center gap-4">
-                                    <button className="btn-primary" onClick={confirmSubmission}>{editLoading ? <LoadingSpinner size={20} /> : "Yes, Submit"}</button>
-                                    <button className="border-red-400 bg-transparent text-red-400 border px-3 rounded-lg" onClick={() => { setShowConfirmModal(false) }}>Cancel</button>
+                        <div className="fixed inset-0 flex items-center justify-center z-40">
+                            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowConfirmModal(false)} />
+                            <div className="bg-white dark:bg-slate-900 rounded-lg z-50 shadow-lg max-w-md w-full mx-4 overflow-hidden">
+                                <div className="p-6">
+                                    <div className="flex flex-col items-center text-center space-y-4">
+                                        <div className="p-3 bg-orange-100 dark:bg-orange-900/20 rounded-full">
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="24"
+                                                height="24"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                className="text-orange-500"
+                                            >
+                                                <path d="M10.24 3.957l-8.422 14.06A1.989 1.989 0 0 0 3.518 21h16.845a1.989 1.989 0 0 0 1.7-2.983l-8.423-14.06a1.989 1.989 0 0 0-3.4 0z"></path>
+                                                <path d="M12 9v4"></path>
+                                                <path d="M12 17h.01"></path>
+                                            </svg>
+                                        </div>
+                                        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Confirm Task Submission</h3>
+                                        <p className="text-gray-500 dark:text-gray-400">Are you sure you want to submit this task? Please review the details before confirming.</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center p-6 space-x-2 border-t border-gray-200 dark:border-gray-800">
+                                    <button
+                                        className="flex-1 px-4 py-2 text-sm font-medium text-gray-500 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-900 transition-colors"
+                                        onClick={() => setShowConfirmModal(false)}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primaryDark rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-offset-gray-900 transition-colors"
+                                        onClick={confirmSubmission}
+                                    >
+                                        {editLoading ? (
+                                            <div className="flex items-center justify-center space-x-2">
+                                                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                <span>Submitting...</span>
+                                            </div>
+                                        ) : (
+                                            "Submit Task"
+                                        )}
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     )}
-                    {step === 1 && <div>
-                        <div className="text-primaryDark mb-4">
-                            <h3 className="font-bold">Edit Task</h3>
-                            <h4 className="tracking-wider">Modify the task details and subtasks as needed</h4>
-                        </div>
-                        <hr className="bg-primaryDark mb-4" />
-
-
-                        <h5 className="text-primary mb-4 text-lg">Task Details:</h5>
-                        <div className="mb-4 text-gray-400">
-                            <label className="block mb-1 text-xs text-primary font-semibold">Name *</label>
-                            <input
-                                type="text"
-                                placeholder="Enter task title"
-                                value={taskDetails.name}
-                                onChange={(e) => handleTaskDetailsChange("name", e.target.value)}
-                                className="border w-full px-2 py-1 text-xs rounded-lg"
-                            />
-                        </div>
-
-                        <div className="mb-4 text-gray-400">
-                            <label className="block mb-1 text-xs text-primary font-semibold">Department *</label>
-                            <input
-                                type="text"
-                                placeholder="Enter department"
-                                value={taskDetails.department}
-                                disabled
-                                className="border w-full px-2 py-1 text-xs rounded-lg"
-                            />
-                        </div>
-
-                        <div className="mb-4 bg-gray-100 rounded-xl p-4">
-                            <label className="block mb-1 text-primary font-semibold">Description <span className="text-xs">(Optional)</span></label>
-                            <textarea
-                                placeholder="eg. what the task is about.."
-                                value={taskDetails.description}
-                                onChange={(e) => handleTaskDetailsChange("description", e.target.value)}
-                                className="border w-full px-2 py-2 outline-none rounded-lg text-xs resize-none"
-                                rows={4}
-                            />
-                        </div>
-
-
-                        <div className="mb-4 bg-gray-100 rounded-xl p-4">
-                            <label className="block mb-1 text-primary  font-semibold">Completion Window <span className="text-xs">(Optional)</span></label>
-                            <div className="flex gap-2">
-                                <input
-                                    type="number"
-                                    placeholder="eg. 3"
-                                    value={taskDetails.completion_window_value || ""}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        // const unit = taskDetails.completion_window_unit || "minutes"; // Default to "minutes" if unit is not set
-                                        handleTaskDetailsChange("completion_window_value", `${value}`);
-                                    }}
-                                    className="border w-1/2 px-2 py-2 outline-none rounded-lg text-xs"
-                                    min="1" // Ensure the number is at least 1
-                                />
-                                <select
-                                    value={taskDetails.completion_window_unit || "minutes"} // Default to "minutes"
-                                    onChange={(e) => {
-                                        const unit = e.target.value;
-                                        // const value = taskDetails.completion_window_value || ""; // Use the current value
-                                        handleTaskDetailsChange("completion_window_unit", `${unit}`);
-                                    }}
-                                    className="border w-1/2 px-2 py-2 outline-none rounded-lg text-xs bg-white"
-                                >
-                                    <option value="minutes">Minutes</option>
-                                    <option value="hours">Hours</option>
-                                    <option value="days">Days</option>
-                                </select>
+                    <div className="text-xs lg:max-w-2xl lg:w-8/12 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-4 py-10 bg-white rounded-2xl shadow-darker h-screen z-30 bg-gradient-to-b from-primaryFaint from-5% via-white">
+                        {step === 1 && <div className="space-y-6">
+                            <div className="text-primaryDark mb-4">
+                                <h3 className="font-bold text-xl">Edit Task</h3>
+                                <h4 className="tracking-wider text-gray-500 text-sm">Modify the task details and subtasks as needed</h4>
                             </div>
-                        </div>
+                            <hr className="bg-primaryDark mb-4" />
 
-                    </div>}
-                    {step === 2 && (
-                        <>
-                            <div className="mb-4 bg-gray-100 rounded-xl p-4">
-                                <label className="block mb-1 text-primary font-semibold">Frequency *</label>
+                            <h5 className="text-primary mb-2 text-lg font-semibold">Task Details:</h5>
+                            <div className="mb-4">
+                                <label className="block mb-1 text-xs text-primary font-semibold">Name *</label>
+                                <input
+                                    type="text"
+                                    placeholder="Enter task title"
+                                    value={taskDetails.name}
+                                    onChange={(e) => handleTaskDetailsChange("name", e.target.value)}
+                                    className="border w-full px-2 py-2 text-xs rounded-lg focus:ring-2 focus:ring-primaryLighter focus:outline-none"
+                                />
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block mb-1 text-xs text-primary font-semibold">Department *</label>
+                                <input
+                                    type="text"
+                                    placeholder="Enter department"
+                                    value={taskDetails.department}
+                                    disabled
+                                    className="border w-full px-2 py-2 text-xs rounded-lg bg-gray-50 cursor-not-allowed"
+                                />
+                            </div>
+
+                            <div className="mb-4 bg-gray-50 rounded-xl p-4">
+                                <label className="block mb-1 text-primary font-semibold">Description <span className="text-xs text-gray-500">(Optional)</span></label>
+                                <textarea
+                                    placeholder="eg. what the task is about.."
+                                    value={taskDetails.description}
+                                    onChange={(e) => handleTaskDetailsChange("description", e.target.value)}
+                                    className="border w-full px-2 py-2 outline-none rounded-lg text-xs resize-none focus:ring-2 focus:ring-primaryLighter"
+                                    rows={4}
+                                />
+                            </div>
+
+                            <div className="mb-4 bg-gray-50 rounded-xl p-4">
+                                <label className="block mb-1 text-primary font-semibold">Completion Window <span className="text-xs text-gray-500">(Optional)</span></label>
                                 <div className="flex gap-2">
                                     <input
                                         type="number"
                                         placeholder="eg. 3"
-                                        value={taskDetails.frequency_value || ""}
+                                        value={taskDetails.completion_window_value || ""}
                                         onChange={(e) => {
                                             const value = e.target.value;
-                                            handleTaskDetailsChange("frequency_value", `${value}`);
+                                            handleTaskDetailsChange("completion_window_value", `${value}`);
                                         }}
-                                        className="border w-1/2 px-2 py-2 outline-none rounded-lg text-xs"
-                                        min="1" // Ensure the number is at least 1
+                                        className="border w-1/2 px-2 py-2 outline-none rounded-lg text-xs focus:ring-2 focus:ring-primaryLighter"
+                                        min="1"
                                     />
                                     <select
-                                        value={taskDetails.frequency_unit || "minutes"} // Default to "minutes"
+                                        value={taskDetails.completion_window_unit || "minutes"}
                                         onChange={(e) => {
                                             const unit = e.target.value;
-                                            handleTaskDetailsChange("frequency_unit", `${unit}`);
+                                            handleTaskDetailsChange("completion_window_unit", `${unit}`);
                                         }}
-                                        className="border w-1/2 px-2 py-2 outline-none rounded-lg text-xs bg-white"
+                                        className="border w-1/2 px-2 py-2 outline-none rounded-lg text-xs bg-white focus:ring-2 focus:ring-primaryLighter"
                                     >
-                                        {/* <option value="minutes">Minutes</option> */}
+                                        <option value="minutes">Minutes</option>
                                         <option value="hours">Hours</option>
                                         <option value="days">Days</option>
                                     </select>
                                 </div>
                             </div>
-                            <div className="mb-4 bg-gray-100 rounded-xl p-4">
-                                <label className="block mb-1 text-primary font-semibold">Add Instruction File</label>
-                                <label className="flex items-center justify-center cursor-pointer w-full px-3 py-2 bg-primaryLighter border rounded-lg text-white hover:bg-white hover:border-primary hover:border-2 hover:text-primary">
-                                    <span>Upload File</span>
-                                    <input
-                                        type="file"
-                                        onChange={handleFileUpload}
-                                        className="hidden"
-                                    />
-                                </label>
-                                <p className="text-xs text-gray-400 mt-4">You can only add media files, with a maximum size of 1.5GB and a duration of 3 minutes for videos. The maximum image size for images is 10MB.</p>
-                            </div>
-                            <h5 className="text-primary text-center text-lg">Subtasks:</h5>
-                            <ul className="overflow-y-scroll overflow-hidden h-52 border-y  ">
-                                {subtasks.map((subtask, index) => (
-                                    <li key={index} className="flex gap-2 my-2 justify-center items-center">
+                        </div>}
+                        {step === 2 && (
+                            <>
+                                <div className="mb-4 bg-gray-50 rounded-xl p-4">
+                                    <label className="block mb-1 text-primary font-semibold">Frequency *</label>
+                                    <div className="flex gap-2">
                                         <input
-                                            type="text"
-                                            placeholder="Subtask Name"
-                                            value={subtask.subtask_name}
-                                            onChange={(e) => handleSubtaskChange(index, "subtask_name", e.target.value)}
-                                            className="border px-2 py-1 rounded-lg"
+                                            type="number"
+                                            placeholder="eg. 3"
+                                            value={taskDetails.frequency_value || ""}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                handleTaskDetailsChange("frequency_value", `${value}`);
+                                            }}
+                                            className="border w-1/2 px-2 py-2 outline-none rounded-lg text-xs focus:ring-2 focus:ring-primaryLighter"
+                                            min="1"
                                         />
-                                        <label className="font-semibold">
+                                        <select
+                                            value={taskDetails.frequency_unit || "hours"}
+                                            onChange={(e) => {
+                                                const unit = e.target.value;
+                                                handleTaskDetailsChange("frequency_unit", `${unit}`);
+                                            }}
+                                            className="border w-1/2 px-2 py-2 outline-none rounded-lg text-xs bg-white focus:ring-2 focus:ring-primaryLighter"
+                                        >
+                                            <option value="hours">Hours</option>
+                                            <option value="days">Days</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="mb-4 bg-gray-50 rounded-xl p-4">
+                                    <label className="block mb-1 text-primary font-semibold">Add Instruction File</label>
+                                    <label className="flex items-center justify-center cursor-pointer w-full px-3 py-2 bg-primaryLighter border rounded-lg text-white hover:bg-white hover:border-primary hover:border-2 hover:text-primary transition-all duration-200">
+                                        <span>Upload File</span>
+                                        <input
+                                            type="file"
+                                            onChange={handleFileUpload}
+                                            className="hidden"
+                                        />
+                                    </label>
+                                    <p className="text-xs text-gray-400 mt-4">You can only add media files, with a maximum size of 1.5GB and a duration of 3 minutes for videos. The maximum image size for images is 10MB.</p>
+                                </div>
+                                <h5 className="text-primary text-center text-lg">Subtasks:</h5>
+                                <ul className="overflow-y-scroll overflow-hidden h-52 border-y">
+                                    {subtasks.map((subtask, index) => (
+                                        <li key={index} className="flex gap-2 my-2 justify-center items-center">
                                             <input
-                                                type="checkbox"
-                                                checked={subtask.subtask_skippable}
-                                                onChange={(e) => handleSubtaskChange(index, "subtask_skippable", e.target.checked)}
+                                                type="text"
+                                                placeholder="Subtask Name"
+                                                value={subtask.subtask_name}
+                                                onChange={(e) => handleSubtaskChange(index, "subtask_name", e.target.value)}
+                                                className="border px-2 py-1 rounded-lg text-xs focus:ring-2 focus:ring-primaryLighter"
                                             />
-                                            Skippable
-                                        </label>
-                                        <button className="text-base text-red-500" onClick={() => handleDeleteSubtask(index)}>
-                                            <MdDeleteOutline />
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                            <button className="btn-primary" onClick={handleAddSubtask}>
-                                Add Subtask
-                            </button>
-                        </>
-                    )}
-                    
+                                            <label className="font-semibold text-xs flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={subtask.subtask_skippable}
+                                                    onChange={(e) => handleSubtaskChange(index, "subtask_skippable", e.target.checked)}
+                                                    className="mr-1"
+                                                />
+                                                Skippable
+                                            </label>
+                                            <button className="text-base text-red-500" onClick={() => handleDeleteSubtask(index)}>
+                                                <MdDeleteOutline />
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <button className="btn-primary mt-2" onClick={handleAddSubtask}>
+                                    Add Subtask
+                                </button>
+                            </>
+                        )}
 
-                    <div className="flex  fixed bottom-2 gap-4 mt-4 justify-end">
-                        <button className="btn-primary" onClick={(e) => e.target.innerText === "Next" ? setStep(2) : setStep(1)}>{step ===1 ? "Next" : "Prev"}</button>
-                        <button className="btn-primary" onClick={handleInitialSubmit}>Submit Changes</button>
-                        <button className="btn-primary" onClick={handleCancel}>Cancel</button>
+                        <div className="flex fixed bottom-2 gap-4 mt-4 justify-end">
+                            <button className="btn-primary" onClick={(e) => e.target.innerText === "Next" ? setStep(2) : setStep(1)}>
+                                {step === 1 ? "Next" : "Prev"}
+                            </button>
+                            <button className="btn-primary" onClick={handleInitialSubmit}>Submit Changes</button>
+                            <button className="btn-primary" onClick={handleCancel}>Cancel</button>
+                        </div>
                     </div>
                 </div>
 
             }
         </>
-
     );
 };
 export default TaskForm2;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import supabase from '@/config/supabaseClient';
 
-const useFetchMonthlyIncidents = () => {
+const useFetchMonthlyIncidents = (selectedYear = new Date().getFullYear()) => {
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -9,16 +9,22 @@ const useFetchMonthlyIncidents = () => {
   useEffect(() => {
     const fetchIncidentsByMonth = async () => {
       try {
-        // Fetch data from incidents, joined with department
-        const { data, error } = await supabase
-          .from('incidents')
-          .select(`
-            incident_id,
-            created_at,
-            department_id,
-            department:department_id (name)
-          `)
-          .order('created_at', { ascending: true });
+          // Calculate the start and end of the selected year
+          const startOfYear = new Date(selectedYear, 0, 1).toISOString();
+          const endOfYear = new Date(selectedYear, 11, 31, 23, 59, 59).toISOString();
+  
+          // Fetch data from incidents, joined with department, filtered by the selected year
+          const { data, error } = await supabase
+            .from('incidents')
+            .select(`
+              incident_id,
+              created_at,
+              department_id,
+              department:department_id (name)
+            `)
+            .gte('created_at', startOfYear) // Filter incidents created on or after the start of the year
+            .lte('created_at', endOfYear)   // Filter incidents created on or before the end of the year
+            .order('created_at', { ascending: true });
 
         if (error) {
           throw error;
@@ -56,7 +62,7 @@ const useFetchMonthlyIncidents = () => {
             monthlyCounts[month][departmentName] += 1;
           }
         });
-        console.log(monthlyCounts);
+        // console.log(monthlyCounts);
 
         // Convert the monthlyCounts object to an array
         const formattedData = months.map(month => monthlyCounts[month]);
@@ -70,7 +76,7 @@ const useFetchMonthlyIncidents = () => {
     };
 
     fetchIncidentsByMonth();
-  }, []);
+  }, [selectedYear]);
 
   return { chartData, loading, error };
 };

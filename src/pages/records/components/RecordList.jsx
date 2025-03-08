@@ -44,6 +44,7 @@ const RecordList = () => {
         // Get the dimensions of the PDF page
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
+        // pdf.text("Table Report", pdfWidth / 2, 10, { align: "center" });
 
         // Get the dimensions of the captured image
         const imgWidth = canvas.width;

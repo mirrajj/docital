@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import supabase from '@/config/supabaseClient';
 
-const useUncomplianceData = () => {
+const useUncomplianceData = (selectedYear = new Date().getFullYear()) => {
   const [uncomplianceData, setUncomplianceData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -9,6 +9,8 @@ const useUncomplianceData = () => {
   useEffect(() => {
     const fetchUncomplianceData = async () => {
       try {
+        const startYear = new Date(selectedYear, 0, 1).toISOString();
+        const endYear = new Date(selectedYear, 11, 31, 23, 59, 59).toISOString();
         // Fetch data from the uncompliance table, joined with the department table
         const { data, error } = await supabase
           .from('uncompliance')
@@ -21,6 +23,8 @@ const useUncomplianceData = () => {
                 )
             )
           `)
+          .gte('created_at',startYear)
+          .lte('created_at',endYear)
           .order('created_at', { ascending: true });
 
         if (error) {
@@ -61,7 +65,7 @@ const useUncomplianceData = () => {
     };
 
     fetchUncomplianceData();
-  }, []);
+  }, [selectedYear]);
 
   return { uncomplianceData, loading, error };
 };

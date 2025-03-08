@@ -1,4 +1,5 @@
 "use client"
+import { useState } from "react"
 import { TrendingUp } from "lucide-react"
 import { Bar, BarChart, CartesianGrid, XAxis,LineChart,Line } from "recharts"
 import {
@@ -14,6 +15,13 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import useFetchMonthlyIncidents from "../../hooks/useFetchMonthlyIncidents"
 
 const chartConfig = {
@@ -47,11 +55,15 @@ const chartConfigLine = {
       label: "Total Incidents",
       color: "hsl(var(--chart-1))",
     }
-  }
+};
 
 const IncidentChart = () => {
-  const { chartData, loading, error } = useFetchMonthlyIncidents();
-  
+  const [selectedYear,setSelectedYear] = useState(new Date().getFullYear());
+  const { chartData, loading, error } = useFetchMonthlyIncidents(selectedYear);
+
+  const handleYearChange = (value) => {
+    setSelectedYear(parseInt(value,10));
+  }
   // Transform the API data to the format needed for the chart
   const transformedData = chartData?.map(item => ({
     month: item.month,
@@ -101,8 +113,21 @@ const IncidentChart = () => {
     <>
         <Card className="my-5">
         <CardHeader>
+          <div>
             <CardTitle>Incident Categories</CardTitle>
             <CardDescription>Monthly Breakdown 2024</CardDescription>
+          </div>
+          <Select defaultValue="2025" onValueChange={(value) => handleYearChange(value)}>
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue placeholder="Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2024">2024</SelectItem>
+                    <SelectItem value="2025">2025</SelectItem>
+                    <SelectItem value="2026">2026</SelectItem>
+                    <SelectItem value="2027">2027</SelectItem>
+                  </SelectContent>
+          </Select>
         </CardHeader>
         <CardContent>
             {loading ? (
@@ -147,8 +172,21 @@ const IncidentChart = () => {
  
           <Card>
               <CardHeader>
+                <div>
                   <CardTitle>Incident Trend</CardTitle>
                   <CardDescription>Monthly Incident Tracking 2024</CardDescription>
+                </div>
+                <Select defaultValue="2025" onValueChange={(value) => handleYearChange(value)}>
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue placeholder="Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2024">2024</SelectItem>
+                    <SelectItem value="2025">2025</SelectItem>
+                    <SelectItem value="2026">2026</SelectItem>
+                    <SelectItem value="2027">2027</SelectItem>
+                  </SelectContent>
+                </Select>
               </CardHeader>
               <CardContent>
                   {loading ? (

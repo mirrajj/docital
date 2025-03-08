@@ -38,34 +38,11 @@ const Task = () => {
         setStep(1);
     }
 
-    // console.log(subtasks);
-    // console.log(taskDetails);
-    // console.log(currentTaskID);
-
-    //function to remove form modal after it is cancelled
-    // const handleCancel = () => {
-    //     setTaskDetails({
-    //         name: "",
-    //         department: "",
-    //         description: "",
-    //         active: "",
-    //         completion_window_value: null,
-    //         completion_window_unit: "",
-    //         completion_window: "",
-    //         frequency: "",
-    //         frequency_value: null,
-    //         frequency_unit: "",
-    //         instructionFile: null,
-    //     });
-    //     setSubtasks([]);
-    //     setShowForm(false);
-    //     hideModal();
-    // }
 
 
     return (
         <>
-            {/* <DashboardHeader title="Task" /> */}
+
             {showError.state && (
                 <AppAlert
                     type="error"
@@ -81,9 +58,11 @@ const Task = () => {
                     onClose={() => setShowSuccess(false)}
                 />
             )}
+            
             <div className="flex justify-end mb-2 border-b4">
                 <TaskButton onClick={onClick} name="Create New" />
             </div>
+            
 
             {showForm && <TaskForm2
                 hideModal={hideModal}

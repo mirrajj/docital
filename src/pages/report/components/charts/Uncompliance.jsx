@@ -1,5 +1,5 @@
 "use client"
-import React from "react"
+import React,{useState} from "react"
 import { CartesianGrid, Line, LineChart, XAxis } from "recharts"
 import useUncomplianceData from "../../hooks/useFetchMonthlyUncompliance"
 import {
@@ -14,11 +14,18 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 
 const chartConfig = {
   incidents: { 
-    label: "Incidents" 
+    label: "Uncompliances",
   },
   processingdepartment: {
     label: "Processing Department",
@@ -47,11 +54,16 @@ const chartConfig = {
 }
 
 const Uncompliance = () => {
-  const {uncomplianceData,loading,error} = useUncomplianceData();
+  const [selectedYear,setSelectedYear] = useState(new Date().getFullYear());
+  const {uncomplianceData,loading,error} = useUncomplianceData(selectedYear);
 
   const [activeChart, setActiveChart] = React.useState("processingdepartment")
   
   const departmentKeys = Object.keys(chartConfig).filter(key => key !== 'incidents')
+
+  const handleYearChange = (value) => {
+    setSelectedYear(parseInt(value,10));
+  }
 
   // Calculate totals for each department
   const total = React.useMemo(() => {
@@ -79,9 +91,22 @@ const Uncompliance = () => {
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
           <CardTitle>Uncompliance Trends</CardTitle>
-          <CardDescription className="text-xs">
-            Uncompliances By Departments for Q1 2025
-          </CardDescription>
+          <div className="flex flex-col gap-2">
+            <CardDescription className="text-xs">
+              Uncompliances By Departments for 2025
+            </CardDescription>
+            <Select defaultValue="2025"  onValueChange={(value) => handleYearChange(value)}>
+              <SelectTrigger className="w-[100px]">
+                <SelectValue placeholder="Year" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2024">2024</SelectItem>
+                <SelectItem value="2025">2025</SelectItem>
+                <SelectItem value="2026">2026</SelectItem>
+                <SelectItem value="2027">2027</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <div className="flex">
           {["processingdepartment", "dryingdepartment","rawmaterialdepartment","generalofficespace","cleaningdepartment","finishedproductdepartment"].map((key) => {
@@ -157,6 +182,7 @@ const Uncompliance = () => {
           </LineChart>
         </ChartContainer>
       </CardContent>
+      
     </Card>
   )
 }

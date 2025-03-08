@@ -16,7 +16,18 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
 } from "@/components/ui/chart";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, ClipboardList, Download, FileX } from "lucide-react";
 
 // Define the chart configuration for our batch data
 const chartConfig = {
@@ -44,15 +55,6 @@ export function BatchReport() {
   const [trendPercentage, setTrendPercentage] = useState(null);
   const [trendDirection, setTrendDirection] = useState('up');
   
-  // Format data for the chart
-//   const formatBatchData = (batchData) => {
-//     if (!batchData || !batchData.length) return [];
-    
-//     return batchData.map(item => ({
-//       ...item,
-//       fill: item.id === "Finished Product" ? "var(--chart-1)" : "var(--chart-2)"
-//     }));
-//   };
   
   // Fetch batch numbers from database
   useEffect(() => {
@@ -96,116 +98,123 @@ export function BatchReport() {
     if (selectedBatch) getData();
   }, [selectedBatch]);
 
-  const handleBatchChange = (e) => {
-    setSelectedBatch(e.target.value);
+  const handleBatchChange = (value) => {
+    setSelectedBatch(value);
   };
 
-console.log(batchRecord);
-  
-  // Format date range (assuming the most recent 6 months)
-  const getDateRange = () => {
-    const now = new Date();
-    const end = new Date(now).toLocaleString('default', { month: 'long', year: 'numeric' });
-    const start = new Date(now.setMonth(now.getMonth() - 5)).toLocaleString('default', { month: 'long', year: 'numeric' });
-    return `${start} - ${end}`;
-  };
 
   return (
-    <Card className="flex flex-col max-w-4xl mx-auto shadow-md">
-      <CardHeader className="items-center pb-0">
-        <CardTitle>Batch Report</CardTitle>
-        <CardDescription>
-          {selectedBatch ? `Batch: ${selectedBatch}` : 'Select a batch to view data'}
-        </CardDescription>
+    <Card className="max-w-4xl mx-auto shadow-md mt-6 overflow-hidden ">
+      <CardHeader className="pb-2 border-b">
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="text-xl font-bold">Batch Report</CardTitle>
+            <CardDescription>
+              {selectedBatch ? `Batch: ${selectedBatch}` : 'Select a batch to view data'}
+            </CardDescription>
+          </div>
+          
+          {!isLoading && !error && (
+            <div className="w-48">
+              <Select
+                value={selectedBatch}
+                onValueChange={handleBatchChange}
+                disabled={isLoading}
+              >
+                <SelectTrigger id="batch-select" className="w-full">
+                  <SelectValue placeholder="Select batch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value=" " disabled>Select a batch number</SelectItem>
+                  {batches.map((batch, index) => (
+                    <SelectItem key={index} value={batch.batch_no}>
+                      {batch.batch_no}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
       </CardHeader>
       
-      <div className="px-6 pt-2">
-        <label htmlFor="batch-select" className="block text-sm font-medium mb-2">
-          Batch Number
-        </label>
-
-        {isLoading && !selectedBatch ? (
-          <div className="animate-pulse flex space-x-4 mb-4">
-            <div className="h-10 bg-gray-200 rounded w-full"></div>
-          </div>
-        ) : error ? (
-          <div className="text-red-500 text-sm mb-4">
-            Error: {error}. Please try again later.
-          </div>
-        ) : (
-          <div className="relative mb-4">
-            <select
-              id="batch-select"
-              value={selectedBatch}
-              onChange={handleBatchChange}
-              className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md shadow-sm"
-            >
-              <option value="" disabled>Select a batch number</option>
-              {batches.map((batch, index) => (
-                <option key={index} value={batch.batch_no}>
-                  {batch.batch_no}
-                </option>
-              ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-              <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
+      <CardContent className="pt-6 pb-4">
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="flex flex-col items-center gap-3">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+              <p className="text-sm text-muted-foreground">Loading batch data...</p>
             </div>
           </div>
-        )}
-      </div>
-      
-      <CardContent className="flex-1 pb-0">
-        {isLoading && selectedBatch ? (
+        ) : error ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+            <div className="flex flex-col items-center gap-2 text-center max-w-md">
+              <AlertTriangle className="h-10 w-10 text-destructive" />
+              <p className="font-medium">Error loading batch data</p>
+              <p className="text-sm text-muted-foreground">{error}. Please try again later.</p>
+            </div>
           </div>
         ) : selectedBatch && batchRecord.length > 0 ? (
-          <ChartContainer
-            config={chartConfig}
-            className="mx-auto aspect-square max-h-[250px] pb-0 [&_.recharts-pie-label-text]:fill-foreground"
-          >
-            <PieChart>
-              <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-              <Pie 
-                data={batchRecord} 
-                dataKey="weight" 
-                nameKey="value" 
-                label 
-                // innerRadius={60} 
-                // outerRadius={80} 
-                // paddingAngle={5}
-              />
-            </PieChart>
-          </ChartContainer>
+          <div className="space-y-6">
+            <ChartContainer
+              config={chartConfig}
+              className="mx-auto aspect-square max-h-[300px] [&_.recharts-pie-label-text]:fill-foreground"
+            >
+              <PieChart>
+                <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                <Pie 
+                  data={batchRecord} 
+                  dataKey="weight" 
+                  nameKey="value" 
+                  label 
+                  innerRadius={60} 
+                  outerRadius={100} 
+                  paddingAngle={2}
+                />
+                <ChartLegend content={<ChartLegendContent />} />
+              </PieChart>
+            </ChartContainer>
+            
+            {trendPercentage !== null && (
+              <div className="flex items-center justify-center gap-2 p-3 bg-muted/50 rounded-lg">
+                <div className={`rounded-full p-1.5 ${trendDirection === 'up' ? 'bg-green-100' : 'bg-red-100'}`}>
+                  {trendDirection === 'up' ? (
+                    <TrendingUp className={`h-5 w-5 ${trendDirection === 'up' ? 'text-green-600' : 'text-red-600'}`} />
+                  ) : (
+                    <TrendingDown className={`h-5 w-5 ${trendDirection === 'up' ? 'text-green-600' : 'text-red-600'}`} />
+                  )}
+                </div>
+                <span className="font-medium">
+                  Trending {trendDirection} by <span className="font-bold">{trendPercentage}%</span> from previous batch
+                </span>
+              </div>
+            )}
+          </div>
         ) : selectedBatch ? (
-          <div className="text-center py-10 text-gray-500">
-            No data available for this batch
+          <div className="flex flex-col items-center justify-center h-64 gap-2">
+            <FileX className="h-12 w-12 text-muted-foreground/70" />
+            <p className="text-lg font-medium">No data available</p>
+            <p className="text-sm text-muted-foreground">This batch doesn't have any recorded data</p>
           </div>
         ) : (
-          <div className="text-center py-10 text-gray-500">
-            Select a batch to view the report
+          <div className="flex flex-col items-center justify-center h-64 gap-2">
+            <ClipboardList className="h-12 w-12 text-muted-foreground/70" />
+            <p className="text-lg font-medium">Select a batch to view the report</p>
+            <p className="text-sm text-muted-foreground">Batch data will appear here</p>
           </div>
         )}
       </CardContent>
       
-      <CardFooter className="flex-col gap-2 text-sm">
-        {selectedBatch && batchRecord.length > 0 && trendPercentage !== null && (
-          <>
-            <div className="flex items-center gap-2 font-medium leading-none">
-              Trending {trendDirection} by {trendPercentage}% from previous batch
-              {trendDirection === 'up' ? (
-                <TrendingUp className="h-4 w-4" />
-              ) : (
-                <TrendingDown className="h-4 w-4" />
-              )}
-            </div>
-            <div className="leading-none text-muted-foreground">
-              Showing finished product vs waste material ratio
-            </div>
-          </>
-        )}
+      <CardFooter className="border-t pt-4 text-sm text-muted-foreground">
+        <div className="w-full flex items-center justify-between">
+          <span>Showing finished product vs waste material ratio</span>
+          {selectedBatch && (
+            <Button variant="ghost" size="sm" className="gap-1">
+              <Download className="h-4 w-4" />
+              Export
+            </Button>
+          )}
+        </div>
       </CardFooter>
     </Card>
   );

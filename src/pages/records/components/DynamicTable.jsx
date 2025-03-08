@@ -59,10 +59,11 @@ const DynamicTable = ({ data, columns, tableRef, title, companyName = "GROITAL" 
             {columns.map((column) => (
               <th
                 key={column}
-                className={`px-2 py-4 text-left font-medium text-green-600 border-b border-r border-gray-200 ${getColumnWidthClass()}`}
-                style={{ width: `${100 / columnCount}%` }} // Equal width distribution
+                className={`px-2 py-4 text-left font-medium text-blue-600 border-b border-r border-gray-200 ${getColumnWidthClass()}`}
+                style={{ width: `${100 / columnCount}%`, verticalAlign : `top` }} // Equal width distribution
               >
-                <div className="truncate" title={column}>
+                <div className="" title={column}> 
+                  {/* removed trancate from the className */}
                   {column}
                 </div>
               </th>
