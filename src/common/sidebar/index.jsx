@@ -38,7 +38,7 @@ const Sidebar = () => {
         {icon : <FaFileAlt className='size-5'/>, label : 'Report', link : '/report'},
         {icon : <MdFolder className='size-5'/>, label : 'Files', link : '/'},
         {icon : <FaChartLine className='size-5'/>, label : 'Monitoring', link : '/monitoring'},
-        {icon : <MdAssignment className='size-5'/>, label : 'Audits', link : '/'},
+        {icon : <MdAssignment className='size-5'/>, label : 'Audits', link : '/audit'},
         {icon : <FaUsers className='size-5'/>, label : 'Manage Users', link : '/'},
         {icon : <MdLibraryBooks className='size-5'/>, label : 'Records', link : '/record'},
         {icon : <FaUser className='size-5'/>, label : 'Profile', link : '/'},
