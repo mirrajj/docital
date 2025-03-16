@@ -6,7 +6,6 @@ const MonitoringDetailsModal = ({ item }) => {
     task_type: false,
     subtasks: false,
   });
-
   const toggleField = (field) => {
     setExpandedFields((prev) => ({
       ...prev,

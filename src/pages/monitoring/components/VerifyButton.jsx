@@ -9,7 +9,7 @@ const VerifyButton = ({ handleVerifyTask, id, checked, isDisabled }) => {
     
     setCheck(!check); // Toggle the checkbox state
     const response = await handleVerifyTask(id); // Call the parent function
-    
+  
     // Delay the state update and handleVerifyTask by 2 seconds
     setTimeout(() => {
       setTaskDisabled(true);

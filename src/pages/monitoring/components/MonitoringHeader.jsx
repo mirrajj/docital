@@ -8,5 +8,4 @@ const MonitoringHeader = () => {
     </header>
   );
 };
-
 export default MonitoringHeader;

@@ -31,7 +31,7 @@ const MonitoringList = ({ setShowError, setShowSuccess }) => {
     const [pendingTaskName, setPendingTaskName] = useState([]);
     const [currentTaskID, setCurrentTaskID] = useState(null);
     const [userID, setUserID] = useState(null); //for capturing the id of the user who verified the task
-    
+
     // Destructure both completions and pendingTasks from the hook
     const { completions, pendingTasks, loading, error, refetch } = useFetchTaskCompletions();
     const { verifyTaskCompletion, loading: verifyLoading, error: verifyError } = useVerifyTask();
@@ -88,7 +88,7 @@ const MonitoringList = ({ setShowError, setShowSuccess }) => {
           border-bottom: 2px solid  #f5f5f5 ;
         `
     };
-    
+
     const theme = useTheme([tableTheme]);
 
     const data = { nodes };
@@ -110,7 +110,7 @@ const MonitoringList = ({ setShowError, setShowSuccess }) => {
             },
         }
     );
-    
+
     const handleExpand = (item) => {
         if (taskName.includes(item.task_name)) {
             setTaskName(taskName.filter((t) => t !== item.task_name));
@@ -118,7 +118,7 @@ const MonitoringList = ({ setShowError, setShowSuccess }) => {
             setTaskName([...taskName, item.task_name]);
         }
     };
-    
+
     // Function to handle expanding pending tasks
     const handleExpandPending = (item) => {
         if (pendingTaskName.includes(item.task_name)) {
@@ -127,7 +127,7 @@ const MonitoringList = ({ setShowError, setShowSuccess }) => {
             setPendingTaskName([...pendingTaskName, item.task_name]);
         }
     };
-    
+
     // Function to format date strings
     const formatValue = (value) => {
         return format(new Date(value), "yyyy-MM-dd HH:mm"); // Extract only the date
@@ -141,7 +141,7 @@ const MonitoringList = ({ setShowError, setShowSuccess }) => {
     function onSortChange(action, state) {
         console.log(action, state);
     }
-    
+
     // Loading skeleton for tables
     const TableSkeleton = () => (
         <div className="animate-pulse">
@@ -154,7 +154,7 @@ const MonitoringList = ({ setShowError, setShowSuccess }) => {
             </div>
         </div>
     );
-    
+
     // Empty state component
     const EmptyState = ({ message }) => (
         <div className="py-8 text-center">
@@ -167,14 +167,14 @@ const MonitoringList = ({ setShowError, setShowSuccess }) => {
             <p className="text-sm text-gray-400">{message}</p>
         </div>
     );
-    
+
     return (
         <div className='container mx-auto p-2 bg-transparent rounded-lg my-8 border border-x-0'>
             <div className="flex-1 mb-6">
                 <h2 className="text-xl font-semibold text-gray-500 flex items-center gap-2 "><span className={`ml-2 inline-block size-5 bg-green-500 rounded-full animate-pulse`}></span>Ongoing Tasks</h2>
                 <p className="text-xs tracking-wider text-gray-500 mt-1">Track tasks awaiting verification</p>
             </div>
-            
+
             {loading ? (
                 <TableSkeleton />
             ) : error ? (
@@ -198,19 +198,19 @@ const MonitoringList = ({ setShowError, setShowSuccess }) => {
                                 {tableList.map((item, index) => (
                                     <React.Fragment key={index}>
                                         <Row>
-                                            <Cell>{formatValue(item.completed_at)}</Cell>
+                                            <Cell>{formatValue(item.active_at)}</Cell>
                                             <Cell>
                                                 {item.task_name}
                                             </Cell>
-                                            <Cell>{item.department}</Cell>
+                                            <Cell>{item.department.name}</Cell>
                                             <Cell>
                                                 <div className='cursor-pointer border rounded-3xl w-fit py-1 px-1 flex items-center gap-2'>
                                                     <span>
-                                                        <VerifyButton 
+                                                        <VerifyButton
                                                             handleVerifyTask={handleVerifyTask}
-                                                            id={item.completion_id} 
-                                                            checked={item.verified ? item.verified : false} 
-                                                            isDisabled={item.verified ? true : false}
+                                                            id={item.id}
+                                                            checked={item.verified ? item.verified : false}
+                                                            isDisabled={item.verification_status === "verified" ? true : false}
                                                         />
                                                     </span>
                                                     <span onClick={() => handleExpand(item)} className="cursor-pointer">
@@ -233,13 +233,13 @@ const MonitoringList = ({ setShowError, setShowSuccess }) => {
             ) : (
                 <EmptyState message="No ongoing tasks found at the moment. Tasks will appear here once they are completed and ready for verification." />
             )}
-            
+
             {/* Pending Tasks Table */}
             <div className="flex-1 mt-10 mb-6">
                 <h2 className="text-xl font-semibold text-gray-500 flex items-center gap-2"><span className={`ml-2 inline-block size-5 bg-yellow-500 rounded-full animate-pulse`}></span> Pending Tasks</h2>
                 <p className="text-xs tracking-wider text-gray-500 mt-1">View all pending tasks awaiting action</p>
             </div>
-            
+
             {loading ? (
                 <TableSkeleton />
             ) : error ? (
@@ -290,11 +290,11 @@ const MonitoringList = ({ setShowError, setShowSuccess }) => {
             ) : (
                 <EmptyState message="No pending tasks found at the moment. New tasks will appear here when they are assigned." />
             )}
-            
+
             {/* Refresh button for both tables */}
             <div className="mt-6 flex justify-end">
-                <button 
-                    onClick={() => refetch()} 
+                <button
+                    onClick={() => refetch()}
                     className="flex items-center gap-2 px-4 py-2 bg-white border border-green-500 text-green-500 rounded-md hover:bg-green-50 transition-colors"
                     disabled={loading}
                 >
