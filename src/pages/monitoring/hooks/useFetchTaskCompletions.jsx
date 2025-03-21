@@ -12,71 +12,31 @@ const useFetchTaskCompletions = () => {
     setError(null);
 
     try {
-      const { data: pendingTasks, error:pendingError } = await supabase
+      // Fetch pending tasks
+      const { data: pendingTasks, error: pendingError } = await supabase
         .from('tasks')
-          .select(`
+        .select(`
+          id,
           task_name,
           task_type,
-          department :department_id (name)
+          department: department_id (name)
         `)
         .eq('status', 'pending')
         .eq('active', true);
-        
 
       if (pendingError) throw pendingError;
-
       setPendingTasks(pendingTasks);
 
-      // Step 1: Fetch all task completions
+      // Fetch task completions awaiting verification
       const { data: taskCompletions, error: completionError } = await supabase
         .from('tasks')
         .select(`*,
           department: department_id (name)`)
-        .eq('verification_status',"not_verified")
+        .eq('verification_status', 'not_verified')
         .eq('active', true)
         .eq('status', 'completed');
 
       if (completionError) throw completionError;
-
-      // Step 2: Fetch associated task and subtask data for each completion
-      // const enrichedCompletions = await Promise.all(
-      //   taskCompletions.map(async (completion) => {
-      //     // Fetch the associated task and department name
-      //     const { data: task, error: taskError } = await supabase
-      //       .from('task')
-      //         .select(`
-      //         task_name,
-      //         task_type,
-      //         department:department_id (name)
-      //       `)
-      //       .eq('task_id', completion.task_id)
-      //       .single();
-
-      //     if (taskError) throw taskError;
-
-      //     // Fetch subtasks if the task is of type 'checklist'
-      //     let subtasks = [];
-      //     if (task.task_type === 'checklist') {
-
-      //       const { data: subtaskData, error: subtaskError } = await supabase
-      //         .from('subtask')
-      //         .select('subtask_name')
-      //         .eq('task_id', completion.task_id);
-
-      //       if (subtaskError) throw subtaskError;
-      //       subtasks = subtaskData;
-      //     }
-
-      //     return {
-      //       ...completion,
-      //       task_type : task.task_type,
-      //       task_name: task.task_name,
-      //       department : task.department.name,
-      //       subtasks: subtasks.map((subtask) => subtask.subtask_name),
-      //     };
-      //   })
-      // );
-
       setCompletions(taskCompletions);
     } catch (err) {
       setError(err.message);
@@ -87,11 +47,62 @@ const useFetchTaskCompletions = () => {
   };
 
   useEffect(() => {
+    // Initial fetch
     fetchTaskCompletions();
+
+    // Set up real-time subscriptions
+    const tasksSubscription = supabase
+      .channel('tasks-changes')
+      .on('postgres_changes', 
+        {
+          event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'tasks'
+        }, 
+        (payload) => {
+          console.log('Change received!', payload);
+          
+          // Handle the change based on the event type
+          if (payload.eventType === 'INSERT') {
+            // For new tasks, refetch to ensure we have all related data
+            fetchTaskCompletions();
+          } 
+          else if (payload.eventType === 'UPDATE') {
+            console.log("updated event")
+            const updatedTask = payload.new;
+            
+            // Handle task status changes
+            if (updatedTask.status === 'pending') {
+              // If task was moved to pending (e.g., rejected)
+              fetchTaskCompletions(); // Refetch to update both lists
+            } 
+            else if (updatedTask.status === 'completed') {
+              if (updatedTask.verification_status === 'not_verified') {
+                // New task ready for verification
+                fetchTaskCompletions();
+              } 
+              else if (updatedTask.verification_status === 'verified') {
+                // Task was verified, remove from completions list
+                setCompletions(prev => prev.filter(task => task.id !== updatedTask.id));
+              }
+            }
+          } 
+          else if (payload.eventType === 'DELETE') {
+            // Handle deletions
+            const deletedTaskId = payload.old.id;
+            setPendingTasks(prev => prev.filter(task => task.id !== deletedTaskId));
+            setCompletions(prev => prev.filter(task => task.id !== deletedTaskId));
+          }
+        })
+      .subscribe();
+
+    // Clean up subscription when component unmounts
+    return () => {
+      supabase.removeChannel(tasksSubscription);
+    };
   }, []);
 
-  return { pendingTasks,completions, loading, error, refetch: fetchTaskCompletions };
+  return { pendingTasks, completions, loading, error, refetch: fetchTaskCompletions };
 };
-
 
 export default useFetchTaskCompletions;

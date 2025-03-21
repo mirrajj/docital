@@ -8,11 +8,13 @@ import Dashboard from './pages/home'
 import AdminLayout from './layout/AdminLayout'
 import Task from './pages/task'
 import { DataProvider } from './utils/DataContext'
+import Unauthorized from './pages/auth/components/Unauthorized'
 import Record from './pages/records'
 import Audit from './pages/audit'
 import Monitoring from './pages/monitoring'
 import ReportPage from './pages/report'
 import Login from './pages/auth/components/Login'
+import UpdatePassword from './pages/auth/components/UpdatePassword'
 import { AuthProvider } from './pages/auth/authContext/AuthContext'
 import ProtectedRoute from './pages/auth/components/ProtectedRoute'
 
@@ -24,6 +26,7 @@ function App() {
           <Routes>
             {/* Public route */}
             <Route path="/login" element={<Login />} />
+            <Route path="/reset-password" element={<UpdatePassword />} />
             
             {/* Protected routes */}
             <Route path="/" element={
@@ -61,6 +64,8 @@ function App() {
                 <AdminLayout page={"Audit"}><Audit /></AdminLayout>
               </ProtectedRoute>
             } />
+
+            <Route path='/unauthorized' element = {<Unauthorized />} />
             
             {/* Catch-all redirect to dashboard */}
             <Route path="*" element={<Navigate to="/" replace />} />

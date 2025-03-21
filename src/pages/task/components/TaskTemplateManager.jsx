@@ -7,13 +7,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Edit, Trash2, Save, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, ChevronDown, ChevronRight, Minus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import AppAlert from '@/common/AppAlert';
+import supabase from '@/config/supabaseClient';
 
-const TaskTemplateManager = () => {
+const TaskTemplateManager = ({ onCancel }) => {
     const {
         templates,
         loading,
@@ -21,9 +22,6 @@ const TaskTemplateManager = () => {
         createTemplate,
         updateTemplate,
         deleteTemplate,
-        addTemplateField,
-        updateTemplateField,
-        deleteTemplateField,
         fetchTemplates,
     } = useTaskTemplates();
 
@@ -38,6 +36,12 @@ const TaskTemplateManager = () => {
     const [showSuccess, setShowSuccess] = useState({ state: false, message: '' });
     const [creationStep, setCreationStep] = useState('basicDetails'); // 'basicDetails' or 'fieldCreation'
 
+
+    const [isCreatingTemplate, setIsCreatingTemplate] = useState(false);
+    const [isDeletingTemplate, setIsDeletingTemplate] = useState(false);
+    const [isUpdatingTemplate, setIsUpdatingTemplate] = useState(false);
+    const [isAddingField, setIsAddingField] = useState(false);
+
     // Template form state
     const [templateForm, setTemplateForm] = useState({
         title: '',
@@ -47,6 +51,7 @@ const TaskTemplateManager = () => {
         version: 1,
         is_latest: true,
         instructions: '',
+        instructionsFile: null,
         fields: []
     });
 
@@ -114,24 +119,25 @@ const TaskTemplateManager = () => {
         setShowTemplateDialog(true);
     };
 
-   const handleEditTemplate = (template) => {
-    setEditingTemplate(template);
-    setTemplateForm({
-        title: template.title,
-        description: template.description,
-        document_code: template.document_code,
-        template_type: template.template_type,
-        version: template.version,
-        is_latest: template.is_latest,
-        instructions: template.instructions,
-        fields: template.fields
-    });
-    setTempFields(template.fields); // Load existing fields into tempFields
-    setShowTemplateDialog(true);
-};
+    const handleEditTemplate = (template) => {
+        setEditingTemplate(template);
+        setTemplateForm({
+            title: template.title,
+            description: template.description,
+            document_code: template.document_code,
+            template_type: template.template_type,
+            version: template.version,
+            is_latest: template.is_latest,
+            instructions: template.instructions,
+            fields: template.fields
+        });
+        setTempFields(template.fields); // Load existing fields into tempFields
+        setShowTemplateDialog(true);
+    };
 
     const handleDeleteTemplate = async (templateId) => {
         try {
+            setIsDeletingTemplate(true);
             await deleteTemplate(templateId);
             setShowSuccess({
                 state: true,
@@ -142,45 +148,83 @@ const TaskTemplateManager = () => {
                 state: true,
                 message: `Failed to delete template: ${error.message}`
             });
+        } finally {
+            isDeletingTemplate(false);
         }
     };
 
     const handleFinalizeTemplate = async () => {
-    try {
-        const finalTemplate = {
-            ...templateForm,
-            fields: tempFields, // Use tempFields for the new version
-            version: templateForm.version + 1, // Increment version
-            is_latest: true, // Mark this as the latest version
-        };
+        try {
+            let instructionsUrl = templateForm.instructions; // Keep existing URL if no new file
 
-        // Create a new version of the template
-        await createTemplate(finalTemplate);
+            // If there's a new file to upload
+            if (templateForm.instructionsFile) {
+                setIsCreatingTemplate(true);
 
-        // Mark the previous version as not latest
-        if (editingTemplate) {
-            await updateTemplate(editingTemplate.id, { is_latest: false });
+                // Generate a unique filename
+                const timestamp = new Date().getTime();
+                const fileExt = templateForm.instructionsFile.name.split('.').pop();
+                const fileName = `${templateForm.document_code || 'template'}-${timestamp}.${fileExt}`;
+
+                // Upload to Supabase storage
+                const { data, error } = await supabase
+                    .storage
+                    .from('tasks-instructions')
+                    .upload(`instructions/${fileName}`, templateForm.instructionsFile, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
+
+                if (error) throw error;
+
+                // Get the public URL
+                const { data: urlData } = supabase
+                    .storage
+                    .from('tasks-instructions')
+                    .getPublicUrl(`instructions/${fileName}`);
+
+                instructionsUrl = urlData.publicUrl;
+            }
+
+            const finalTemplate = {
+                
+                title: templateForm.title,
+                description: templateForm.description,
+                document_code: templateForm.document_code,
+                template_type: templateForm.template_type,
+
+                instructions: instructionsUrl, // Store the URL
+                fields: tempFields,
+                version: editingTemplate ? templateForm.version + 1 : 1,
+                is_latest: true,
+            };
+
+            // Create a new version of the template
+            await createTemplate(finalTemplate);
+
+            // Mark the previous version as not latest
+            if (editingTemplate) {
+                await updateTemplate(editingTemplate.id, { is_latest: false });
+            }
+
+            setShowSuccess({
+                state: true,
+                message: 'Template updated successfully',
+            });
+            setShowTemplateDialog(false);
+            setCreationStep('basicDetails');
+            setTempFields([]);
+        } catch (error) {
+            console.log(error);
+            setShowError({
+                state: true,
+                message: `Failed to ${editingTemplate ? 'update' : 'create'} template: ${error.message}`,
+            });
+        } finally {
+            setIsCreatingTemplate(false);
         }
-
-        setShowSuccess({
-            state: true,
-            message: 'Template updated successfully',
-        });
-        setShowTemplateDialog(false);
-        setCreationStep('basicDetails'); // Reset to the first step
-        setTempFields([]); // Clear tempFields
-    } catch (error) {
-        setShowError({
-            state: true,
-            message: `Failed to ${editingTemplate ? 'update' : 'create'} template: ${error.message}`,
-        });
-    }
-};
-
-    const handleAddField = () => {
-        setEditingFieldIndex(null);
-        setShowFieldDialog(true);
     };
+
 
     const handleEditTempField = (index) => {
         const field = tempFields[index];
@@ -196,8 +240,10 @@ const TaskTemplateManager = () => {
 
 
     const handleFieldSubmit = () => {
+        setIsAddingField(true);
         if (fieldForm.name.trim() === '') {
             setShowError({ state: true, message: 'Field name is required' });
+            setIsAddingField(false);
             return;
         }
 
@@ -212,6 +258,7 @@ const TaskTemplateManager = () => {
         }
 
         setFieldForm({ name: '', type: 'text', constraints: {} }); // Reset the field form
+        setIsAddingField(false);
         setShowFieldDialog(false); // Close the dialog
         setEditingFieldIndex(null); // Reset editing state
     };
@@ -393,10 +440,44 @@ const TaskTemplateManager = () => {
             )}
 
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Task Template Manager</h1>
-                <Button onClick={handleCreateTemplate} className="flex items-center gap-2">
-                    <Plus size={16} /> Create Template
-                </Button>
+                <h1 className="text-2xl font-bold text-gray-500">Task Template Manager</h1>
+                <div className="flex items-center gap-2">
+
+                    <Button className="flex items-center bg-transparent text-black border hover:bg-gray-100" onClick={() => { // Reset states when the dialog is closed
+                        setTemplateForm({
+                            title: '',
+                            description: '',
+                            document_code: '',
+                            template_type: 'general',
+                            version: 1,
+                            is_latest: true,
+                            instructions: '',
+                            fields: []
+                        });
+                        setTempFields([]); // Reset tempFields
+                        setCreationStep('basicDetails');
+                        onCancel();
+                    }
+
+                    }>
+                        <Minus size={16} /> Cancel
+                    </Button>
+                    <Button onClick={handleCreateTemplate} className="flex items-center gap-2" disabled={loading}>
+                        {loading ? (
+                            <>
+                                <svg className="w-5 h-5 mr-3 -ml-1 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Loading...
+                            </>
+                        ) : (
+                            <>
+                                <Plus size={16} /> Create Template
+                            </>
+                        )}
+                    </Button>
+                </div>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -476,17 +557,20 @@ const TaskTemplateManager = () => {
                                                 )}
                                             </div>
 
-                                            {/* <div className="flex justify-between items-center mb-4">
-                                                <h3 className="font-medium">Template Fields</h3>
-                                                <Button 
-                                                    size="sm" 
-                                                    variant="outline" 
-                                                    onClick={handleAddField}
-                                                    className="flex items-center gap-1"
-                                                >
-                                                    <Plus size={14} /> Add Field
-                                                </Button>
-                                            </div> */}
+                                            {template.instructions && (
+                                                <>
+                                                    <h3 className="font-medium mt-4 mb-2">Instructions</h3>
+                                                    <a
+                                                        href={template.instructions}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-blue-500 hover:underline"
+                                                    >
+                                                        View Instructions Document
+                                                    </a>
+                                                </>
+                                            )}
+
 
                                             {template.fields && template.fields.length > 0 ? (
                                                 <div className="space-y-2">
@@ -705,14 +789,38 @@ const TaskTemplateManager = () => {
                             </div>
 
                             <div className="col-span-2">
-                                <Label htmlFor="instructions" className="mb-1">Instructions</Label>
-                                <Textarea
-                                    id="instructions"
-                                    value={templateForm.instructions}
-                                    onChange={(e) => setTemplateForm({ ...templateForm, instructions: e.target.value })}
-                                    placeholder="Instructions for completing tasks with this template"
-                                    rows={4}
-                                />
+                                <Label htmlFor="instructions" className="mb-1">Instructions File</Label>
+                                <div className="space-y-2">
+                                    <Input
+                                        id="instructionsFile"
+                                        type="file"
+                                        accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt"
+                                        onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            if (file) {
+                                                // Check file size (50MB = 50 * 1024 * 1024 bytes)
+                                                if (file.size > 50 * 1024 * 1024) {
+                                                    setShowError({
+                                                        state: true,
+                                                        message: 'File size exceeds the maximum limit of 50MB'
+                                                    });
+                                                    e.target.value = '';
+                                                    return;
+                                                }
+                                                setTemplateForm({ ...templateForm, instructionsFile: file });
+                                            }
+                                        }}
+                                    />
+                                    <p className="text-sm text-gray-500">Maximum file size: 50MB. Accepted formats: PDF, DOC, DOCX, TXT</p>
+                                    {templateForm.instructions && (
+                                        <div className="text-sm">
+                                            <span className="font-medium">Current file: </span>
+                                            <a href={templateForm.instructions} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                                                View Instructions
+                                            </a>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     ) : (
@@ -733,7 +841,7 @@ const TaskTemplateManager = () => {
 
                             {/* Render Temporary Fields */}
                             {tempFields.length > 0 ? (
-                                <div className="space-y-2">
+                                <div className="space-y-2 max-h-[60vh] overflow-y-auto">
                                     {tempFields.map((field, index) => (
                                         <div key={index} className="bg-white border rounded-md p-3 flex justify-between items-start">
                                             <div>
@@ -783,110 +891,23 @@ const TaskTemplateManager = () => {
                         ) : (
                             <>
                                 <Button variant="outline" onClick={() => setCreationStep('basicDetails')}>Back</Button>
-                                <Button onClick={handleFinalizeTemplate}>Finalize Template</Button>
+                                <Button onClick={handleFinalizeTemplate} disabled={isCreatingTemplate}>
+                                    {isCreatingTemplate ? (
+                                        <>
+                                            <svg className="w-5 h-5 mr-3 -ml-1 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Processing...
+                                        </>
+                                    ) : "Finalize Template"}
+                                </Button>
                             </>
                         )}
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-            {/* Template Dialog */}
-            {/* <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
-                <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                        <DialogTitle>{editingTemplate ? 'Edit Template' : 'Create Template'}</DialogTitle>
-                    </DialogHeader>
-                    
-                    <div className="grid grid-cols-2 gap-4 py-4">
-                        <div className="col-span-2">
-                            <Label htmlFor="title" className="mb-1">Template Title *</Label>
-                            <Input
-                                id="title"
-                                value={templateForm.title}
-                                onChange={(e) => setTemplateForm({ ...templateForm, title: e.target.value })}
-                                placeholder="Enter template title"
-                                required
-                            />
-                        </div>
-                        
-                        <div className="col-span-2">
-                            <Label htmlFor="description" className="mb-1">Description</Label>
-                            <Textarea
-                                id="description"
-                                value={templateForm.description}
-                                onChange={(e) => setTemplateForm({ ...templateForm, description: e.target.value })}
-                                placeholder="Enter template description"
-                                rows={3}
-                            />
-                        </div>
-                        
-                        <div>
-                            <Label htmlFor="document_code" className="mb-1">Document Code</Label>
-                            <Input
-                                id="document_code"
-                                value={templateForm.document_code}
-                                onChange={(e) => setTemplateForm({ ...templateForm, document_code: e.target.value })}
-                                placeholder="e.g. TASK-TEMP-001"
-                            />
-                        </div>
-                        
-                        <div>
-                            <Label htmlFor="template_type" className="mb-1">Template Type</Label>
-                            <Select
-                                value={templateForm.template_type}
-                                onValueChange={(value) => setTemplateForm({ ...templateForm, template_type: value })}
-                            >
-                                <SelectTrigger id="template_type">
-                                    <SelectValue placeholder="Select type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="general">General</SelectItem>
-                                    <SelectItem value="checklist">Checklist</SelectItem>
-                                    <SelectItem value="approval">Approval</SelectItem>
-                                    <SelectItem value="review">Review</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        
-                        <div>
-                            <Label htmlFor="version" className="mb-1">Version</Label>
-                            <Input
-                                id="version"
-                                type="number"
-                                min="1"
-                                value={templateForm.version}
-                                onChange={(e) => setTemplateForm({ ...templateForm, version: parseInt(e.target.value) })}
-                            />
-                        </div>
-                        
-                        <div className="flex items-center gap-4">
-                            <Label htmlFor="is_latest" className="mb-0">Latest Version</Label>
-                            <Switch
-                                id="is_latest"
-                                checked={templateForm.is_latest}
-                                onCheckedChange={(checked) => setTemplateForm({ ...templateForm, is_latest: checked })}
-                            />
-                        </div>
-                        
-                        <div className="col-span-2">
-                            <Label htmlFor="instructions" className="mb-1">Instructions</Label>
-                            <Textarea
-                                id="instructions"
-                                value={templateForm.instructions}
-                                onChange={(e) => setTemplateForm({ ...templateForm, instructions: e.target.value })}
-                                placeholder="Instructions for completing tasks with this template"
-                                rows={4}
-                            />
-                        </div>
-                    </div>
-                    
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowTemplateDialog(false)}>Cancel</Button>
-                        <Button onClick={handleTemplateSubmit}>
-                            {editingTemplate ? 'Update Template' : 'Create Template'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog> */}
+
 
             {/* Field Dialog */}
             <Dialog
@@ -899,7 +920,7 @@ const TaskTemplateManager = () => {
                     setShowFieldDialog(open);
                 }}
             >
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-2xl ">
                     <DialogHeader>
                         <DialogTitle>{editingFieldIndex !== null ? 'Edit Field' : 'Add Field'}</DialogTitle>
                     </DialogHeader>
@@ -936,13 +957,14 @@ const TaskTemplateManager = () => {
                                             Text Fields
                                         </SelectLabel>
                                         <SelectItem value="text">Text</SelectItem>
-                                        <SelectItem value="textarea">Textarea</SelectItem>
-                                        <SelectItem value="select">Select</SelectItem>
+                                        <SelectItem value="textarea">Paragraph</SelectItem>
+                                        <SelectItem value="select">Dropdown of options</SelectItem>
                                         <SelectItem value="multiselect">Multi-select</SelectItem>
-                                        <SelectItem value="int">Integer</SelectItem>
-                                        <SelectItem value="decimal">Decimal</SelectItem>
-                                        <SelectItem value="date">Date</SelectItem>
-                                        <SelectItem value="boolean">Boolean</SelectItem>
+                                        <SelectItem value="int">Integer e.g 1,2,3 </SelectItem>
+                                        <SelectItem value="decimal">Decimal e.g 3.4, 45.5 ,0.4</SelectItem>
+                                        <SelectItem value="date">Date and Time</SelectItem>
+                                        <SelectItem value="phone number">Phone Number</SelectItem>
+                                        <SelectItem value="boolean">Yes/No</SelectItem>
                                         <SelectItem value="file">File</SelectItem>
                                         <SelectItem value="products">Products</SelectItem>
                                         <SelectItem value="batch number">Batch Number</SelectItem>
@@ -973,8 +995,16 @@ const TaskTemplateManager = () => {
 
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setShowFieldDialog(false)}>Cancel</Button>
-                        <Button onClick={handleFieldSubmit}>
-                            {editingFieldIndex !== null ? 'Update Field' : 'Add Field'}
+                        <Button onClick={handleFieldSubmit} disabled={isAddingField}>
+                            {isAddingField ? (
+                                <>
+                                    <svg className="w-5 h-5 mr-3 -ml-1 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    {editingFieldIndex !== null ? 'Updating...' : 'Adding...'}
+                                </>
+                            ) : (editingFieldIndex !== null ? 'Update Field' : 'Add Field')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

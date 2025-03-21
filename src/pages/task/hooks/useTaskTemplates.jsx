@@ -24,7 +24,6 @@ export const useTaskTemplates = () => {
             setLoading(false);
         }
     }, []);
-
     // Create a new template
     const createTemplate = useCallback(async (templateData) => {
         try {
@@ -159,7 +158,7 @@ export const useTaskTemplates = () => {
             throw err;
         }
     }, [fetchTemplates]);
-
+    
     // Delete a field from a template
     const deleteTemplateField = useCallback(async (templateId, fieldIndex) => {
         try {

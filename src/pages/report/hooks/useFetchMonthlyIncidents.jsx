@@ -29,7 +29,7 @@ const useFetchMonthlyIncidents = (selectedYear = new Date().getFullYear()) => {
         if (error) {
           throw error;
         }
-
+        
         // Initialize monthly data structure
         const months = [
           'January', 'February', 'March', 'April', 

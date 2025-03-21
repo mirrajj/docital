@@ -1,58 +1,102 @@
-// src/pages/audit/components/AuditForm.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '@/config/supabaseClient';
 import useAuditActions from '../hooks/useAuditActions';
-import TemplateSaveModal from './TemplateSaveModal';
 
-const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel, isLoading = false }) => {
-  if (!isOpen) return null;
+// Shadcn UI imports
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+// Template Save Modal Component
+const TemplateSaveModal = ({ isOpen, onClose, onSave }) => {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+
+  const handleSave = () => {
+    onSave(title, description);
+    setTitle('');
+    setDescription('');
+  };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center">
-        {/* Backdrop with blur effect */}
-        <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-          <div className="absolute inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm"></div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Save as Template</DialogTitle>
+          <DialogDescription>
+            Would you like to save these questions as a reusable template?
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label htmlFor="title">Template Title</Label>
+            <Input
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter template title"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">Template Description</Label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter template description"
+              rows={3}
+            />
+          </div>
         </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={handleSave} disabled={!title.trim()}>Save Template</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
-        {/* Modal content */}
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-            <div className="sm:flex sm:items-start">
-              <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                  {title}
-                </h3>
-                <div className="mt-2">
-                  <p className="text-sm text-gray-500">
-                    {message}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-            <button
-              type="button"
-              className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
-              onClick={onConfirm}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Processing...' : 'Confirm'}
-            </button>
-            <button
-              type="button"
-              className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-              onClick={onCancel}
-              disabled={isLoading}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+// Confirmation Modal Component
+const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel, isLoading = false }) => {
+  return (
+    <Dialog open={isOpen} onOpenChange={onCancel}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{message}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={onCancel} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button onClick={onConfirm} disabled={isLoading}>
+            {isLoading ? 'Processing...' : 'Confirm'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 
@@ -68,7 +112,6 @@ const AuditForm = ({ audit = null, onSubmit, onCancel, setShowSuccess, setShowEr
   const navigate = useNavigate();
   const isEditMode = !!audit;
 
-  const [departments, setDepartments] = useState([]);
   const [employees, setEmployees] = useState([]);
 
   // Form steps
@@ -81,9 +124,7 @@ const AuditForm = ({ audit = null, onSubmit, onCancel, setShowSuccess, setShowEr
     title: '',
     description: '',
     departmentId: '',
-    // status: 'pending',
     scheduledDate: '',
-    // dueDate: '',
     assignedTo: '',
     templateId: '',
     customQuestions: []
@@ -94,6 +135,7 @@ const AuditForm = ({ audit = null, onSubmit, onCancel, setShowSuccess, setShowEr
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [templateQuestions, setTemplateQuestions] = useState([]);
   const [isCreatingCustom, setIsCreatingCustom] = useState(false);
+  const [departments, setDepartments] = useState([]);
 
   // Form validation
   const [errors, setErrors] = useState({});
@@ -122,12 +164,10 @@ const AuditForm = ({ audit = null, onSubmit, onCancel, setShowSuccess, setShowEr
         order: question.order
       }));
 
-      // setTemplateQuestions(formattedQuestions);
-
       setFormData(prev => ({
         ...prev,
-        customQuestions : formattedQuestions
-      }))
+        customQuestions: formattedQuestions
+      }));
 
       setIsCreatingCustom(true); // Show as custom questions
     } catch (error) {
@@ -135,23 +175,16 @@ const AuditForm = ({ audit = null, onSubmit, onCancel, setShowSuccess, setShowEr
       setTemplateQuestions([]);
     }
   };
+
   // Load audit data if in edit mode
   useEffect(() => {
     if (isEditMode && audit) {
-      // Format dates for form inputs
-      const formatDate = (dateString) => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        return date.toISOString().split('T')[0]; // YYYY-MM-DD format
-      };
 
       setFormData({
         title: audit.audit_title || '',
         description: audit.description || '',
         departmentId: audit.department_id || '',
-        // status: audit.status || 'pending',
-        scheduledDate: formatDate(audit.scheduled_date),
-        // dueDate: formatDate(audit.dueDate),
+        scheduledDate: (audit.scheduled_date),
         assignedTo: audit.assigned_to || '',
         templateId: audit.template_id || '',
         customQuestions: [] // We'll load these separately
@@ -162,19 +195,20 @@ const AuditForm = ({ audit = null, onSubmit, onCancel, setShowSuccess, setShowEr
         loadTemplateDetails(audit.template_id);
         setIsCreatingCustom(false);
       } else {
-        // If no template, check if it has questions directly
+        // If no template, load the questions but keep them in read-only mode
         loadAuditQuestions(audit.audit_id);
+        // Important: Even if using custom questions, don't allow editing them
+        setIsCreatingCustom(false);  // Force template mode even for custom questions
       }
     }
   }, [audit, isEditMode]);
-
 
   // Function to load departments from Supabase
   const loadDepartments = async () => {
     try {
       const { data, error } = await supabase
         .from('department')
-        .select('department_id, name') // Assuming your department table has id and name columns
+        .select('department_id, name')
         .order('name');
 
       if (error) {
@@ -183,7 +217,13 @@ const AuditForm = ({ audit = null, onSubmit, onCancel, setShowSuccess, setShowEr
         return;
       }
 
-      setDepartments(data || []);
+      // Format department data
+      const formattedDepartments = data.map(dept => ({
+        id: dept.department_id,
+        name: dept.name
+      }));
+
+      setDepartments(formattedDepartments || []);
     } catch (error) {
       console.error('Exception when fetching departments:', error);
       setDepartments([]);
@@ -194,8 +234,8 @@ const AuditForm = ({ audit = null, onSubmit, onCancel, setShowSuccess, setShowEr
   const loadEmployees = async () => {
     try {
       const { data, error } = await supabase
-        .from('employee') // Adjust table name if different
-        .select('id, name, department') // Adjust fields as needed
+        .from('employee')
+        .select('id, name, department')
         .order('name');
 
       if (error) {
@@ -217,6 +257,7 @@ const AuditForm = ({ audit = null, onSubmit, onCancel, setShowSuccess, setShowEr
       setEmployees([]);
     }
   };
+
   // Function to load all templates from Supabase
   const loadTemplates = async () => {
     try {
@@ -236,7 +277,6 @@ const AuditForm = ({ audit = null, onSubmit, onCancel, setShowSuccess, setShowEr
         id: template.id,
         title: template.title,
         version: template.version_number
-        // You can add other properties as needed
       }));
 
       setTemplates(formattedTemplates);
@@ -284,13 +324,11 @@ const AuditForm = ({ audit = null, onSubmit, onCancel, setShowSuccess, setShowEr
     }
   };
 
-  // Load department-specific templates when department changes
   useEffect(() => {
-    loadDepartments();
     loadEmployees();
     loadTemplates();
+    loadDepartments();
   }, []);
-  // console.log(templateQuestions);
 
   // Handle input changes
   const handleInputChange = (e) => {
@@ -311,16 +349,33 @@ const AuditForm = ({ audit = null, onSubmit, onCancel, setShowSuccess, setShowEr
     }
   };
 
-  // Handle template selection
-  const handleTemplateChange = (e) => {
-    const templateId = e.target.value;
+  // Handle select changes for shadcn/ui Select
+  const handleSelectChange = (name, value) => {
     setFormData(prev => ({
       ...prev,
-      templateId
+      [name]: value
+    }));
+    setIsDirty(true);
+
+    // Clear error for this field if it exists
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  // Handle template selection
+  const handleTemplateChange = (value) => {
+    setFormData(prev => ({
+      ...prev,
+      templateId: value
     }));
 
-    if (templateId) {
-      loadTemplateDetails(templateId);
+    if (value) {
+      loadTemplateDetails(value);
       setIsCreatingCustom(false);
     } else {
       setTemplateQuestions([]);
@@ -332,6 +387,11 @@ const AuditForm = ({ audit = null, onSubmit, onCancel, setShowSuccess, setShowEr
 
   // Toggle custom template creation
   const toggleCustomTemplate = () => {
+    // Don't allow switching to custom mode in edit mode
+    if (isEditMode && !isCreatingCustom) {
+      return; // Prevent toggling to custom in edit mode
+    }
+
     setIsCreatingCustom(!isCreatingCustom);
     if (!isCreatingCustom) {
       // Reset template selection
@@ -347,10 +407,10 @@ const AuditForm = ({ audit = null, onSubmit, onCancel, setShowSuccess, setShowEr
   // Add a custom question
   const addCustomQuestion = () => {
     const newQuestion = {
-      question_text: '', // Changed from questionText
-      question_type: 'yes_no', // Changed from questionType
+      question_text: '',
+      question_type: 'yes_no',
       required: true,
-      options: null, // Added to match your schema
+      options: null,
       order: formData.customQuestions.length + 1
     };
 
@@ -400,14 +460,12 @@ const AuditForm = ({ audit = null, onSubmit, onCancel, setShowSuccess, setShowEr
       if (!formData.title.trim()) newErrors.title = 'Title is required';
       if (!formData.departmentId) newErrors.departmentId = 'Department is required';
       if (!formData.scheduledDate) newErrors.scheduledDate = 'Scheduled date is required';
-      //   if (!formData.dueDate) newErrors.dueDate = 'Due date is required';
-      //   if (formData.scheduledDate && formData.dueDate && 
-      //       new Date(formData.scheduledDate) > new Date(formData.dueDate)) {
-      //     newErrors.dueDate = 'Due date must be after scheduled date';
-      //   }
     } else if (currentStep === 2) {
-      if (!isCreatingCustom && !formData.templateId) {
-        newErrors.templateId = 'Please select a template or create custom questions';
+      // In edit mode with custom questions already, don't require a template
+      const needsTemplateOrQuestions = !(isEditMode && audit && !audit.template_id);
+
+      if (needsTemplateOrQuestions && !isCreatingCustom && !formData.templateId) {
+        newErrors.templateId = 'Please select a template';
       }
 
       if (isCreatingCustom && formData.customQuestions.length === 0) {
@@ -442,7 +500,6 @@ const AuditForm = ({ audit = null, onSubmit, onCancel, setShowSuccess, setShowEr
   };
 
   const handleSubmit = async (e) => {
-    console.log("about to confirm submission");
     e.preventDefault();
 
     if (validateStep()) {
@@ -547,510 +604,524 @@ const AuditForm = ({ audit = null, onSubmit, onCancel, setShowSuccess, setShowEr
   // Custom question rendering logic
   const renderCustomQuestionFields = () => {
     return formData.customQuestions.map((question, index) => (
-      <div key={question.id} className="mb-4 p-3 border border-gray-300 rounded-md">
-        <div className="flex justify-between items-center mb-2">
-          <h4 className="text-sm font-medium">Question {index + 1}</h4>
-          <button
-            type="button"
-            className="text-red-500 hover:text-red-700"
-            onClick={() => removeCustomQuestion(index)}
-          >
-            Remove
-          </button>
-        </div>
-
-        <div className="mb-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Question Text
-          </label>
-          <input
-            type="text"
-            className={`w-full px-3 py-2 border ${errors[`question-${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
-            value={question.question_text}
-            onChange={(e) => updateCustomQuestion(index, 'question_text', e.target.value)}
-          />
-          {errors[`question-${index}`] && (
-            <p className="mt-1 text-sm text-red-500">{errors[`question-${index}`]}</p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Question Type
-            </label>
-            <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={question.question_type}
-              onChange={(e) => updateCustomQuestion(index, 'question_type', e.target.value)}
+      <Card key={index} className="mb-4">
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-sm">Question {index + 1}</CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => removeCustomQuestion(index)}
+              className="text-red-500 h-8"
             >
-              <option value="yes_no">Yes/No</option>
-              <option value="scale">Scale (1-5)</option>
-              <option value="text">Text Response</option>
-              <option value="multiple_choice">Multiple Choice</option>
-            </select>
+              Remove
+            </Button>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Required
-            </label>
-            <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={question.required.toString()}
-              onChange={(e) => updateCustomQuestion(index, 'required', e.target.value === 'true')}
-            >
-              <option value="true">Yes</option>
-              <option value="false">No</option>
-            </select>
-          </div>
-        </div>
-
-        {question.questionType === 'multiple_choice' && (
-          <div className="mt-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Options (comma separated)
-            </label>
-            <input
-              type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Option 1, Option 2, Option 3"
-              value={question.options || ''}
-              onChange={(e) => updateCustomQuestion(index, 'options', e.target.value)}
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor={`question-${index}`}>
+              Question Text
+            </Label>
+            <Input
+              id={`question-${index}`}
+              value={question.question_text}
+              onChange={(e) => updateCustomQuestion(index, 'question_text', e.target.value)}
+              className={errors[`question-${index}`] ? 'border-red-500' : ''}
             />
+            {errors[`question-${index}`] && (
+              <p className="text-xs text-red-500">{errors[`question-${index}`]}</p>
+            )}
           </div>
-        )}
-      </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor={`question-type-${index}`}>
+                Question Type
+              </Label>
+              <Select
+                value={question.question_type}
+                onValueChange={(value) => updateCustomQuestion(index, 'question_type', value)}
+              >
+                <SelectTrigger id={`question-type-${index}`}>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="yes_no">Yes/No</SelectItem>
+                  <SelectItem value="scale">Scale (1-5)</SelectItem>
+                  <SelectItem value="text">Text Response</SelectItem>
+                  <SelectItem value="multiple_choice">Multiple Choice</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor={`question-required-${index}`}>
+                Required
+              </Label>
+              <Select
+                value={question.required.toString()}
+                onValueChange={(value) => updateCustomQuestion(index, 'required', value === 'true')}
+              >
+                <SelectTrigger id={`question-required-${index}`}>
+                  <SelectValue placeholder="Select option" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="true">Yes</SelectItem>
+                  <SelectItem value="false">No</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {question.question_type === 'multiple_choice' && (
+            <div className="space-y-2">
+              <Label htmlFor={`question-options-${index}`}>
+                Options (comma separated)
+              </Label>
+              <Input
+                id={`question-options-${index}`}
+                placeholder="Option 1, Option 2, Option 3"
+                value={question.options || ''}
+                onChange={(e) => updateCustomQuestion(index, 'options', e.target.value)}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
     ));
   };
 
-  // Additional code for the step-based form will be included in the main return JSX
+  // Render step content
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="title">
+                Audit Title<span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="title"
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+                className={errors.title ? 'border-red-500' : ''}
+              />
+              {errors.title && <p className="text-xs text-red-500">{errors.title}</p>}
+            </div>
 
-  // Helper function to render form step indicators
-  const renderStepIndicator = () => {
-    const steps = [
-      { number: 1, title: 'Basic Information' },
-      { number: 2, title: 'Template & Questions' },
-      { number: 3, title: 'Review & Create' }
-    ];
+            <div className="space-y-2">
+              <Label htmlFor="description">
+                Description
+              </Label>
+              <Textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                rows={3}
+              />
+            </div>
 
-    return (
-      <div className="flex items-center justify-center mb-8">
-        {steps.map((step) => (
-          <React.Fragment key={step.number}>
-            <div className={`flex items-center ${currentStep === step.number ? 'text-blue-600' : 'text-gray-500'}`}>
-              <div className={`flex-shrink-0 h-8 w-8 flex items-center justify-center border-2 rounded-full ${currentStep === step.number ? 'border-blue-600 bg-blue-50' : 'border-gray-300'}`}>
-                {step.number}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+
+              <div className="space-y-2">
+                <Label htmlFor="departmentId">
+                  Department<span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={formData.departmentId}
+                  onValueChange={(value) => handleSelectChange('departmentId', value)}
+                >
+                  <SelectTrigger id="departmentId" className={errors.departmentId ? 'border-red-500' : ''}>
+                    <SelectValue placeholder="Select Department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {departments.length > 0 ? (
+                      departments.map(dept => (
+                        <SelectItem key={dept.id} value={dept.id.toString()}>
+                          {dept.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem disabled>No departments found</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+                {errors.departmentId && <p className="text-xs text-red-500">{errors.departmentId}</p>}
               </div>
-              <div className="ml-2 text-sm font-medium">
-                {step.title}
+
+              <div className="space-y-2">
+                <Label htmlFor="scheduledDate">
+                  Scheduled Date<span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="scheduledDate"
+                  name="scheduledDate"
+                  type="date"
+                  value={formData.scheduledDate}
+                  onChange={handleInputChange}
+                  className={errors.scheduledDate ? 'border-red-500' : ''}
+                />
+                {errors.scheduledDate && <p className="text-xs text-red-500">{errors.scheduledDate}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="assignedTo">
+                  Assigned To
+                </Label>
+                <Select
+                  value={formData.assignedTo}
+                  onValueChange={(value) => handleSelectChange('assignedTo', value)}
+                >
+                  <SelectTrigger id="assignedTo">
+                    <SelectValue placeholder="Select User" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {employees.map(emp => (
+                      <SelectItem key={emp.id} value={emp.id.toString()}>
+                        {emp.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-            {step.number < steps.length && (
-              <div className="flex-1 h-0.5 mx-4 bg-gray-300"></div>
-            )}
-          </React.Fragment>
-        ))}
-      </div>
-    );
-  };
+          </div>
+        );
+      case 2:
+        return (
+          <div className="space-y-6">
+            <Tabs
+              defaultValue={isCreatingCustom ? "custom" : "template"}
+              onValueChange={(value) => {
+                // Only allow changing to custom if not in edit mode
+                if (!isEditMode || value !== "custom") {
+                  setIsCreatingCustom(value === "custom");
+                }
+              }}
+            >
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="template">Use Template</TabsTrigger>
+                <TabsTrigger value="custom" disabled={isEditMode}>
+                  Create Custom {isEditMode && "(Disabled in Edit Mode)"}
+                </TabsTrigger>
+              </TabsList>
 
-  // Helper function to render form buttons
-  const renderFormButtons = () => {
-    return (
-      <div className="flex justify-between mt-6">
-        {currentStep > 1 ? (
-          <button
-            type="button"
-            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            onClick={goToPrevStep}
-          >
-            Back
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            onClick={handleCancel}
-          >
-            Cancel
-          </button>
-        )}
+              <TabsContent value="template" className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="templateId">
+                    Select Template
+                  </Label>
+                  <Select
+                    value={formData.templateId}
+                    onValueChange={handleTemplateChange}
+                  >
+                    <SelectTrigger id="templateId" className={errors.templateId ? 'border-red-500' : ''}>
+                      <SelectValue placeholder="Select Template" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {templates.map(template => (
+                        <SelectItem key={template.id} value={template.id}>
+                          {template.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.templateId && <p className="text-xs text-red-500">{errors.templateId}</p>}
+                </div>
 
-        {currentStep < 3 ? (
-          <button
-            type="button"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            onClick={(e) => goToNextStep(e)}
-          >
-            Next
-          </button>
-        ) : (
-          <button
-            type="submit"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            {isEditMode ? 'Update Audit' : 'Create Audit'}
-          </button>
-        )}
-      </div>
-    );
+                {selectedTemplate && (
+                  <Card className="mt-4">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm">Template Preview</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <h4 className="text-sm font-medium mb-2">
+                        {selectedTemplate.title}
+                        <Badge variant="outline" className="ml-2">v{selectedTemplate.version}</Badge>
+                      </h4>
+
+                      {templateQuestions.length > 0 ? (
+                        <div className="space-y-3">
+                          {templateQuestions.map((question, index) => (
+                            <div key={question.id} className="border-b border-gray-200 pb-2">
+                              <p className="text-sm font-medium">
+                                {index + 1}. {question.questionText} {question.required && '*'}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                Type: {question.questionType.replace('_', ' ')}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500">No questions found in this template.</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              <TabsContent value="custom" className="space-y-4 pt-4">
+                {isEditMode ?
+                  (
+                    <div className="p-4 border border-yellow-200 bg-yellow-50 rounded-md">
+                      <p className="text-sm text-yellow-800">
+                        Creating custom questions is disabled when editing an existing audit.
+                        You can select a different template, but cannot create new custom questions.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-center mb-4 sticky top-0 bg-white py-2 z-10">
+                        <Label className="text-sm font-medium">Custom Questions</Label>
+                        <Button
+                          size="sm"
+                          onClick={addCustomQuestion}
+                        >
+                          Add Question
+                        </Button>
+                      </div>
+
+                      {formData.customQuestions.length > 0 ? (
+                        <div className="space-y-4">
+                          {renderCustomQuestionFields()}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 border border-dashed border-gray-300 rounded-md">
+                          <p className="text-sm text-gray-500 mb-4">No custom questions added yet.</p>
+                          <Button onClick={addCustomQuestion} size="sm">
+                            Add First Question
+                          </Button>
+                        </div>
+                      )}
+
+                      {errors.customQuestions && (
+                        <p className="text-xs text-red-500">{errors.customQuestions}</p>
+                      )}
+                    </>
+                  )
+                }
+              </TabsContent>
+            </Tabs>
+          </div>
+        );
+      case 3:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-base font-medium">Review Audit Details</h3>
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <h4 className="text-xs font-medium text-gray-500">Audit Title</h4>
+                    <p>{formData.title}</p>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xs font-medium text-gray-500">Department</h4>
+                    <p>
+                      {departments.find(dept => dept.id.toString() === formData.departmentId)?.name || 'Not selected'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xs font-medium text-gray-500">Scheduled Date</h4>
+                    <p>{formData.scheduledDate}</p>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xs font-medium text-gray-500">Assigned To</h4>
+                    <p>
+                      {employees.find(emp => emp.id.toString() === formData.assignedTo)?.name || 'Not assigned'}
+                    </p>
+                  </div>
+
+                  <div className="col-span-2">
+                    <h4 className="text-xs font-medium text-gray-500">Description</h4>
+                    <p className="whitespace-pre-line">{formData.description || 'No description provided'}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Questions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isCreatingCustom ? (
+                  <div className="space-y-4">
+                    {formData.customQuestions.length > 0 ? (
+                      formData.customQuestions.map((question, index) => (
+                        <div key={index} className="border-b border-gray-200 pb-2 last:border-b-0">
+                          <p className="text-sm font-medium">
+                            {index + 1}. {question.question_text} {question.required && <span className="text-red-500">*</span>}
+                          </p>
+                          <div className="flex items-center text-xs text-gray-500 mt-1">
+                            <span className="capitalize">Type: {question.question_type.replace('_', ' ')}</span>
+                            {question.question_type === 'multiple_choice' && question.options && (
+                              <span className="ml-4">Options: {question.options}</span>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500">No custom questions added.</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {selectedTemplate ? (
+                      <div>
+                        <div className="flex items-center mb-3">
+                          <h3 className="text-sm font-medium">{selectedTemplate.title}</h3>
+                          <Badge variant="outline" className="ml-2">v{selectedTemplate.version}</Badge>
+                        </div>
+
+                        {templateQuestions.length > 0 ? (
+                          templateQuestions.map((question, index) => (
+                            <div key={question.id} className="border-b border-gray-200 pb-2 last:border-b-0">
+                              <p className="text-sm font-medium">
+                                {index + 1}. {question.questionText} {question.required && <span className="text-red-500">*</span>}
+                              </p>
+                              <p className="text-xs text-gray-500 capitalize mt-1">
+                                Type: {question.questionType.replace('_', ' ')}
+                              </p>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-sm text-gray-500">No questions in this template.</p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">No template selected.</p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
-      <h2 className="text-xl font-semibold mb-4">{isEditMode ? 'Edit Audit' : 'Create New Audit'}</h2>
-      <TemplateSaveModal isOpen={isTemplateSaveModalOpen}
-        onClose={() => handleTemplateSaveDecision(false)}
-        onSave={(title, description) => handleTemplateSaveDecision(true, title, description)} />
-
-      {renderStepIndicator()}
-
-      <form onSubmit={handleSubmit}>
-        {/* Step 1: Basic Information */}
-        {currentStep === 1 && (
-          <div>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div className="col-span-2">
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                  Audit Title*
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  id="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border ${errors.title ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
-                />
-                {errors.title && <p className="mt-1 text-sm text-red-500">{errors.title}</p>}
-              </div>
-
-              <div className="col-span-2">
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <textarea
-                  name="description"
-                  id="description"
-                  rows="3"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="departmentId" className="block text-sm font-medium text-gray-700 mb-1">
-                  Department*
-                </label>
-                <select
-                  name="departmentId"
-                  id="departmentId"
-                  value={formData.departmentId}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border ${errors.departmentId ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
-                >
-                  <option value="">Select Department</option>
-                  {departments.map(dept => (
-                    <option key={dept.department_id} value={dept.department_id}>{dept.name}</option>
-                  ))}
-                </select>
-                {errors.departmentId && <p className="mt-1 text-sm text-red-500">{errors.departmentId}</p>}
-              </div>
-
-              {/* <div>
-                              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
-                                  Status
-                              </label>
-                              <select
-                                  name="status"
-                                  id="status"
-                                  value={formData.status}
-                                  onChange={handleInputChange}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                              >
-                                  <option value="pending">Pending</option>
-                                  <option value="scheduled">Scheduled</option>
-                                  <option value="in_progress">In Progress</option>
-                                  <option value="completed">Completed</option>
-                              </select>
-                          </div> */}
-
-              <div>
-                <label htmlFor="scheduledDate" className="block text-sm font-medium text-gray-700 mb-1">
-                  Scheduled Date*
-                </label>
-                <input
-                  type="date"
-                  name="scheduledDate"
-                  id="scheduledDate"
-                  value={formData.scheduledDate}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border ${errors.scheduledDate ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
-                />
-                {errors.scheduledDate && <p className="mt-1 text-sm text-red-500">{errors.scheduledDate}</p>}
-              </div>
-
-              {/* <div>
-                              <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 mb-1">
-                                  Due Date*
-                              </label>
-                              <input
-                                  type="date"
-                                  name="dueDate"
-                                  id="dueDate"
-                                  value={formData.dueDate}
-                                  onChange={handleInputChange}
-                                  className={`w-full px-3 py-2 border ${errors.dueDate ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
-                              />
-                              {errors.dueDate && <p className="mt-1 text-sm text-red-500">{errors.dueDate}</p>}
-                          </div> */}
-
-              <div>
-                <label htmlFor="assignedTo" className="block text-sm font-medium text-gray-700 mb-1">
-                  Assigned To
-                </label>
-                <select
-                  name="assignedTo"
-                  id="assignedTo"
-                  value={formData.assignedTo}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">Select User</option>
-                  {employees.map(emp => (
-                    <option key={emp.id} value={emp.id}>{emp.name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
+    <div className="w-full max-w-4xl mx-auto">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="bg-white shadow-sm rounded-lg p-6">
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold">{isEditMode ? 'Edit Audit' : 'Create New Audit'}</h2>
+            <p className="text-gray-500 text-sm mt-1">
+              {isEditMode ? 'Update the audit details below.' : 'Fill out the details to create a new audit.'}
+            </p>
           </div>
-        )}
 
-        {/* Step 2: Template & Questions */}
-        {currentStep === 2 && (
-          <div>
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Select Template or Create Custom Questions
-              </label>
-
-              <div className="flex items-center space-x-4 mb-4">
-                <button
-                  type="button"
-                  className={`px-3 py-2 border rounded-md ${!isCreatingCustom ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-gray-300 text-gray-700'} hover:bg-blue-50 hover:border-blue-500 hover:text-blue-700`}
-                  onClick={() => setIsCreatingCustom(false)}
-                >
-                  Use Template
-                </button>
-                <button
-                  type="button"
-                  className={`px-3 py-2 border rounded-md ${isCreatingCustom ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-gray-300 text-gray-700'} hover:bg-blue-50 hover:border-blue-500 hover:text-blue-700`}
-                  onClick={toggleCustomTemplate}
-                >
-                  Create Custom
-                </button>
-              </div>
-
-              {!isCreatingCustom ? (
-                <div>
-                  <select
-                    name="templateId"
-                    id="templateId"
-                    value={formData.templateId}
-                    onChange={handleTemplateChange}
-                    className={`w-full px-3 py-2 border ${errors.templateId ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
+          {/* Step indicators */}
+          <div className="mb-8">
+            <div className="flex justify-between items-center">
+              {[1, 2, 3].map((step) => (
+                <div key={step} className="flex-1 flex flex-col items-center">
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${currentStep === step
+                      ? 'bg-blue-600 text-white'
+                      : currentStep > step
+                        ? 'bg-green-500 text-white'
+                        : 'bg-gray-200 text-gray-500'
+                      }`}
                   >
-                    <option value="">Select Template</option>
-                    {templates.map(template => (
-                      <option key={template.id} value={template.id}>{template.title}</option>
-                    ))}
-                  </select>
-                  {errors.templateId && <p className="mt-1 text-sm text-red-500">{errors.templateId}</p>}
-
-                  {selectedTemplate && (
-                    <div className="mt-4">
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">Template Preview</h3>
-                      <div className="border border-gray-300 rounded-md p-4">
-                        <h4 className="font-medium mb-2">{selectedTemplate.title} (v{selectedTemplate.version})</h4>
-
-                        {templateQuestions.length > 0 ? (
-                          <div className="space-y-3">
-                            {templateQuestions.map(question => (
-                              <div key={question.id} className="border-b border-gray-200 pb-2">
-                                <p className="font-medium">{question.questionText} {question.required && '*'}</p>
-                                <p className="text-sm text-gray-500">Type: {question.questionType.replace('_', ' ')}</p>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-gray-500">No questions found in this template.</p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium text-gray-900">Custom Questions</h3>
-                    <button
-                      type="button"
-                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      onClick={addCustomQuestion}
-                    >
-                      Add Question
-                    </button>
+                    {currentStep > step ? (
+                      '✓'
+                    ) : (
+                      step
+                    )}
                   </div>
-
-                  {formData.customQuestions.length > 0 ? (
-                    <div className="space-y-2">
-                      {renderCustomQuestionFields()}
-                    </div>
-                  ) : (
-                    <div className="text-center py-6 border border-dashed border-gray-300 rounded-md">
-                      <p className="text-gray-500">No custom questions added yet.</p>
-                      <button
-                        type="button"
-                        className="mt-2 inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        onClick={addCustomQuestion}
-                      >
-                        Add First Question
-                      </button>
-                    </div>
-                  )}
-
-                  {errors.customQuestions && (
-                    <p className="mt-1 text-sm text-red-500">{errors.customQuestions}</p>
-                  )}
+                  <span className="text-xs font-medium">
+                    {step === 1 ? 'Basic Info' : step === 2 ? 'Questions' : 'Review'}
+                  </span>
                 </div>
-              )}
+              ))}
+            </div>
+            <div className="mt-2 flex justify-between items-center">
+              <div className="h-1 flex-1 bg-green-500"></div>
+              <div className={`h-1 flex-1 ${currentStep >= 2 ? 'bg-green-500' : 'bg-gray-200'}`}></div>
+              <div className={`h-1 flex-1 ${currentStep >= 3 ? 'bg-green-500' : 'bg-gray-200'}`}></div>
             </div>
           </div>
-        )}
 
-        {/* Step 3: Review & Create */}
-        {currentStep === 3 && (
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Review Audit Details</h3>
+          {/* Step content */}
+          {renderStepContent()}
 
-            <div className="bg-gray-50 rounded-md p-4 mb-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Audit Title</h4>
-                  <p className="text-base">{formData.title}</p>
-                </div>
+          {/* Navigation buttons */}
+          <div className="flex justify-between mt-8">
+            {currentStep > 1 ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={goToPrevStep}
+              >
+                Back
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+              >
+                Cancel
+              </Button>
+            )}
 
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Department</h4>
-                  <p className="text-base">
-                    {departments.find(dept => dept.department_id === formData.departmentId)?.name || 'Not selected'}
-                  </p>
-                </div>
-
-                {/* <div>
-                                  <h4 className="text-sm font-medium text-gray-500">Status</h4>
-                                  <p className="text-base capitalize">{formData.status.replace('_', ' ')}</p>
-                              </div> */}
-
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Scheduled Date</h4>
-                  <p className="text-base">{formData.scheduledDate}</p>
-                </div>
-
-                {/* <div>
-                                  <h4 className="text-sm font-medium text-gray-500">Due Date</h4>
-                                  <p className="text-base">{formData.dueDate}</p>
-                              </div> */}
-
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Assigned To</h4>
-                  <p className="text-base">
-                    {employees.find(emp => emp.id === formData.assignedTo)?.name || 'Not assigned'}
-                  </p>
-                </div>
-
-                <div className="col-span-2">
-                  <h4 className="text-sm font-medium text-gray-500">Description</h4>
-                  <p className="text-base">{formData.description || 'No description provided'}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <h4 className="text-sm font-medium text-gray-500 mb-2">Questions</h4>
-
-              {isCreatingCustom ? (
-                <div className="bg-gray-50 rounded-md p-4">
-                  <h5 className="font-medium mb-2">Custom Questions</h5>
-
-                  {formData.customQuestions.length > 0 ? (
-                    <div className="space-y-3">
-                      {formData.customQuestions.map((question, index) => (
-                        <div key={question.id} className="border-b border-gray-200 pb-2">
-                          <p className="font-medium">
-                            {index + 1}. {question.question_text} {question.required && '*'}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Type: {question.question_type.replace('_', ' ')}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500">No custom questions added.</p>
-                  )}
-                </div>
-              ) : selectedTemplate ? (
-                <div className="bg-gray-50 rounded-md p-4">
-                  <h5 className="font-medium mb-2">
-                    Template: {selectedTemplate.title} (v{selectedTemplate.version})
-                  </h5>
-
-                  {templateQuestions.length > 0 ? (
-                    <div className="space-y-3">
-                      {templateQuestions.map((question, index) => (
-                        <div key={question.id} className="border-b border-gray-200 pb-2">
-                          <p className="font-medium">
-                            {index + 1}. {question.questionText} {question.required && '*'}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Type: {question.questionType.replace('_', ' ')}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500">No questions found in this template.</p>
-                  )}
-                </div>
-              ) : (
-                <p className="text-gray-500">No template or custom questions selected.</p>
-              )}
-            </div>
+            {currentStep < 3 ? (
+              <Button
+                type="button"
+                onClick={goToNextStep}
+              >
+                Next
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Submitting...' : isEditMode ? 'Save Changes' : 'Create Audit'}
+              </Button>
+            )}
           </div>
-        )}
-
-        {renderFormButtons()}
+        </div>
       </form>
-      {/* Submit Confirmation Modal */}
+
+      {/* Confirmation Modal for Discarding Changes */}
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        title="Discard Changes?"
+        message="You have unsaved changes. Are you sure you want to discard them?"
+        onConfirm={confirmDiscard}
+        onCancel={cancelDiscard}
+      />
+
+      {/* Confirmation Modal for Submitting Form */}
       <ConfirmationModal
         isOpen={isSubmitConfirmModalOpen}
         title="Submit Audit"
-        message="Are you sure you want to submit this audit? This action cannot be undone."
+        message={isEditMode ? "Are you sure you want to save these changes?" : "Are you sure you want to create this audit?"}
         onConfirm={confirmAndSubmitForm}
         onCancel={() => setIsSubmitConfirmModalOpen(false)}
         isLoading={isSubmitting}
       />
 
-      {/* Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={isConfirmModalOpen}
-        title="Discard changes?"
-        message="You have unsaved changes. Are you sure you want to discard them?"
-        onConfirm={confirmDiscard}
-        onCancel={cancelDiscard}
+      {/* Template Save Modal */}
+      <TemplateSaveModal
+        isOpen={isTemplateSaveModalOpen}
+        onClose={() => handleTemplateSaveDecision(false)}
+        onSave={(title, description) => handleTemplateSaveDecision(true, title, description)}
       />
     </div>
   );

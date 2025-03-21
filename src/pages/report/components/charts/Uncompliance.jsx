@@ -187,4 +187,4 @@ const Uncompliance = () => {
   )
 }
 
-export default Uncompliance
+export default Uncompliance;

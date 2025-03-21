@@ -1,9 +1,22 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTheme } from '@table-library/react-table-library/theme';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Download } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import AuditDetails from './AuditDetails';
 import Pagination from './Pagination';
-import { MdArrowDropDown,MdArrowRight } from 'react-icons/md';
+import { MdArrowDropDown, MdArrowRight } from 'react-icons/md';
+import { Badge } from '@/components/ui/badge';
+import { handleDownloadReport } from '../utils/auditPdfDownload';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 import {
     Table,
@@ -13,13 +26,12 @@ import {
     Row,
     HeaderCell,
     Cell,
-    useCustom,
 } from "@table-library/react-table-library/table";
 
 const AuditList = ({ 
     filters, 
     onEditAudit, 
-    onDeleteAudit, // Add this prop
+    onDeleteAudit,
     audits, 
     setSelectedAudit,
     loading,
@@ -31,7 +43,10 @@ const AuditList = ({
 
     const [auditData, setAuditData] = useState({nodes: []});
     const [ids, setIds] = useState([]);
-    // const [isHide, setHide] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [auditToDelete, setAuditToDelete] = useState(null);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const {toast} = useToast();
 
     useEffect(() => {
         setAuditData({nodes: audits});
@@ -72,34 +87,88 @@ const AuditList = ({
         return { nodes : auditData.nodes }
     }, [ auditData.nodes]);
 
-    // Modified to prevent row expansion when clicking on action buttons
-    const handleExpand = (item, e) => {
-        setIds(prev => {if (prev.includes(item.audit_id)) {
-            return prev.filter((id) => id !== item.audit_id);
-        }else{
-            return [...prev, item.audit_id]
-        }})
+    const handleExpand = (item) => {
+        setIds(prev => {
+            if (prev.includes(item.audit_id)) {
+                return prev.filter((id) => id !== item.audit_id);
+            } else {
+                return [...prev, item.audit_id]
+            }
+        });
     };
 
     const handlePageChange = (newPage) => {
         setPage(newPage);
-        // When changing pages, collapse all expanded rows
         setIds([]);
     }
 
     const handleEdit = (e, item) => {
         e.stopPropagation();
-        onEditAudit(item);
-    };
-
-    const handleDelete = (e, id) => {
-        e.stopPropagation();
-        if (window.confirm("Are you sure you want to delete this audit?")) {
-            onDeleteAudit(id);
+        if (item.status !== 'completed') {
+            onEditAudit(item);
         }
     };
 
-    // const { headers, csvData } = prepareCSVData(audits);
+    const openDeleteDialog = (e, item) => {
+        e.stopPropagation();
+        setAuditToDelete(item);
+        setDeleteDialogOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (auditToDelete) {
+            onDeleteAudit(auditToDelete.id);
+        }
+        setDeleteDialogOpen(false);
+        setAuditToDelete(null);
+    };
+
+    const cancelDelete = () => {
+        setDeleteDialogOpen(false);
+        setAuditToDelete(null);
+    };
+    
+    const initiateDownload = async (e, item) => {
+        e.stopPropagation();
+        
+        if (item.status !== 'completed') {
+            toast({
+                title: "Download unavailable",
+                description: "Only completed audits can be downloaded",
+                variant: "destructive"
+            });
+            return;
+        }
+        
+        setIsDownloading(true);
+        
+        try {
+            const success = await handleDownloadReport(item);
+            
+            if (success) {
+                toast({
+                    title: "Download successful",
+                    description: "Audit report has been downloaded",
+                    variant: "default"
+                });
+            } else {
+                toast({
+                    title: "Download failed",
+                    description: "There was an error generating the report",
+                    variant: "destructive"
+                });
+            }
+        } catch (error) {
+            console.error("Error downloading report:", error);
+            toast({
+                title: "Download error",
+                description: "An unexpected error occurred",
+                variant: "destructive"
+            });
+        } finally {
+            setIsDownloading(false);
+        }
+    };
 
     if (loading) {
         return <div className="text-center py-8">Loading audits...</div>;
@@ -111,45 +180,18 @@ const AuditList = ({
 
     return (
         <>
-            {/* <div className="flex justify-end gap-3 mb-4">
-                <button
-                    onClick={() => console.log("Export to PDF")}
-                    disabled={audits.length === 0}
-                    className="flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                    Export to PDF
-                </button>
-                <CSVLink
-                    data={csvData}
-                    headers={headers}
-                    filename="audit-reports.csv"
-                    target="_blank"
-                    className={`flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${audits.length === 0 ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Export to CSV
-                </CSVLink>
-            </div> */}
             <br />
-
+            
             <Table data={data} theme={theme}>
                 {(tableList) => (
                     <>
                         <Header>
                             <HeaderRow>
-                                <HeaderCell>Audit ID</HeaderCell>
+                                <HeaderCell>Audit Title</HeaderCell>
                                 <HeaderCell>Audit Type</HeaderCell>
-                                {/* <HeaderCell>Conducted By</HeaderCell> */}
                                 <HeaderCell>Department</HeaderCell>
                                 <HeaderCell>Scheduled Date</HeaderCell>
-                                {/* <HeaderCell>Completion Date</HeaderCell> */}
-                                {/* <HeaderCell>Status</HeaderCell> */}
-                                {/* <HeaderCell>Compliance Score</HeaderCell> */}
+                                <HeaderCell>Status</HeaderCell>
                                 <HeaderCell>Actions</HeaderCell>
                             </HeaderRow>
                         </Header>
@@ -160,55 +202,55 @@ const AuditList = ({
                                     <Row item={item}>
                                         <Cell>{item.audit_title}</Cell>
                                         <Cell>{item.audit_type}</Cell>
-                                        {/* <Cell>{item.conducted_by}</Cell> */}
                                         <Cell>{item.department.name}</Cell>
                                         <Cell>{item.scheduled_date}</Cell>
-                                        {/* <Cell>{formatDate(item.completed_at)}</Cell> */}
-                                        {/* <Cell>
-                                            <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                ${item.status === 'completed' ? 'bg-green-100 text-green-800' : 
-                                                item.status === 'in_progress' ? 'bg-blue-100 text-blue-800' : 
-                                                item.status === 'failed' ? 'bg-red-100 text-red-800' : 
-                                                'bg-yellow-100 text-yellow-800'}`}>
-                                                {item.status}
-                                            </span>
-                                        </Cell> */}
-                                        {/* <Cell>{item.compliance_score}</Cell> */}
+                                        <Cell>
+                                            {item.status === 'completed' ? (
+                                                <Badge variant="success" className="bg-green-100 text-green-800 hover:bg-green-200">
+                                                    Completed
+                                                </Badge>
+                                            ) : (
+                                                <Badge variant="outline" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
+                                                    Pending
+                                                </Badge>
+                                            )}
+                                        </Cell>
                                         <Cell>
                                             <div className="flex items-center space-x-2">
                                                 <button 
                                                     onClick={(e) => handleEdit(e, item)}
-                                                    className="action-button text-indigo-600 hover:text-indigo-900 p-1"
-                                                    title="Edit audit"
+                                                    className={`action-button p-1 ${
+                                                        item.status === 'completed' 
+                                                        ? 'text-gray-400 cursor-not-allowed' 
+                                                        : 'text-indigo-600 hover:text-indigo-900'
+                                                    }`}
+                                                    title={item.status === 'completed' ? "Cannot edit completed audit" : "Edit audit"}
+                                                    disabled={item.status === 'completed'}
                                                 >
                                                     <Edit size={16} />
                                                 </button>
                                                 
                                                 <button 
-                                                    onClick={(e) => handleDelete(e, item.id)}
+                                                    onClick={(e) => openDeleteDialog(e, item)}
                                                     className="action-button text-red-600 hover:text-red-900 p-1"
                                                     title="Delete audit"
                                                 >
                                                     <Trash2 size={16} />
                                                 </button>
                                                 
-                                                {/* <button 
-                                                    onClick={(e) => handleDownload(e, item)}
-                                                    className="action-button text-blue-600 hover:text-blue-900 p-1"
-                                                    title="Download report"
+                                                <button 
+                                                    onClick={(e) => initiateDownload(e, item)}
+                                                    className={`action-button p-1 ${
+                                                        item.status === 'completed' 
+                                                        ? 'text-blue-600 hover:text-blue-900' 
+                                                        : 'text-gray-400 cursor-not-allowed'
+                                                    }`}
+                                                    title={item.status === 'completed' ? "Download report" : "Report not available"}
+                                                    disabled={item.status !== 'completed' || isDownloading}
                                                 >
                                                     <Download size={16} />
-                                                </button> */}
+                                                </button>
                                                 
-                                                {/* {item.status !== 'pass' && (
-                                                    <button 
-                                                        onClick={(e) => handleApprove(e, item)}
-                                                        className="action-button text-green-600 hover:text-green-900 p-1"
-                                                        title="Approve audit"
-                                                    >
-                                                        <CheckCircle size={16} />
-                                                    </button>
-                                                )} */}
                                                 <button onClick={() => handleExpand(item)} >
                                                     {ids.includes(item.audit_id) ? <MdArrowDropDown size={16} /> : <MdArrowRight size={16} />}
                                                 </button>
@@ -224,6 +266,7 @@ const AuditList = ({
                     </>
                 )}
             </Table>
+            
             {audits.length > 0 && (
                 <Pagination 
                     currentPage={page}
@@ -231,6 +274,24 @@ const AuditList = ({
                     onPageChange={handlePageChange}
                 />
             )}
+
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the audit
+                            {auditToDelete && `: "${auditToDelete.audit_title}"`}.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={cancelDelete}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 };

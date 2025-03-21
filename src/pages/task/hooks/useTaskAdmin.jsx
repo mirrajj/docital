@@ -21,6 +21,7 @@ export const useTaskAdmin = () => {
                     *,
                     department:department_id (name)
                 `)
+                .is('deleted_at',null)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -39,6 +40,7 @@ export const useTaskAdmin = () => {
             const { data, error } = await supabase
                 .from('task_templates')
                 .select('*')
+                .eq('is_latest',true)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -61,7 +63,7 @@ export const useTaskAdmin = () => {
                 .select();
 
             if (error) throw error;
-            await fetchTasks(); // Refresh tasks
+            // await fetchTasks(); // Refresh tasks
             return data[0];
         } catch (err) {
             console.error('Error creating task:', err);
@@ -105,7 +107,7 @@ export const useTaskAdmin = () => {
         try {
             const { error } = await supabase
                 .from('tasks')
-                .delete()
+                .update({ deleted_at: new Date().toISOString() })
                 .eq('id', taskId);
 
             if (error) throw error;

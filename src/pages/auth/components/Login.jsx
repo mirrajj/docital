@@ -1,17 +1,18 @@
 // src/pages/Login.js
 import { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../authContext/AuthContext';
+import SignUp from './SignUp';
+import ForgotPassword from './ForgotPassword';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [message, setMessage] = useState('');
+  const [authView, setAuthView] = useState('sign-in'); // 'sign-in', 'sign-up', 'forgot-password'
   
-  const { login, signUp } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -21,25 +22,14 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setMessage('');
     setIsLoading(true);
     
     try {
-      let result;
+      const result = await login(email, password);
       
-      if (isSignUp) {
-        result = await signUp(email, password);
-        if (result.success) {
-          setMessage(result.message);
-        }
+      if (result.success) {
+        navigate(from, { replace: true });
       } else {
-        result = await login(email, password);
-        if (result.success) {
-          navigate(from, { replace: true });
-        }
-      }
-      
-      if (!result.success) {
         setError(result.error);
       }
     } catch (err) {
@@ -49,87 +39,91 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+
+  // Render different views based on authView state
+  const renderAuthView = () => {
+    switch (authView) {
+      case 'sign-up':
+        return <SignUp setAuthView={setAuthView} />;
+      case 'forgot-password':
+        return <ForgotPassword setAuthView={setAuthView} />;
+      default:
+        return (
+          <div className="w-full max-w-md mx-auto">
+            <h2 className="text-2xl font-bold mb-6">Sign in to your account</h2>
+            
+            {error && (
+              <div className="bg-red-100 p-3 rounded text-red-700 mb-4">
+                {error}
+              </div>
+            )}
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setAuthView('forgot-password')}
+                    className="text-sm text-blue-600 hover:text-blue-800"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              
+              <div>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-blue-400"
+                >
+                  {isLoading ? 'Signing in...' : 'Sign in'}
+                </button>
+              </div>
+              
+              <p className="text-center mt-4 text-sm">
+                Don't have an account?{' '}
+                <button
+                  type="button"
+                  onClick={() => setAuthView('sign-up')}
+                  className="text-blue-600 hover:text-blue-800"
+                >
+                  Create one
+                </button>
+              </p>
+            </form>
+          </div>
+        );
+    }
+  };
   
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow">
-        <div>
-          <h2 className="mt-6 text-3xl font-extrabold text-center text-gray-900">
-            {isSignUp ? 'Create an account' : 'Sign in to your account'}
-          </h2>
-        </div>
-        
-        {error && (
-          <div className="p-4 text-sm text-red-700 bg-red-100 rounded-lg">
-            {error}
-          </div>
-        )}
-        
-        {message && (
-          <div className="p-4 text-sm text-green-700 bg-green-100 rounded-lg">
-            {message}
-          </div>
-        )}
-        
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4 rounded-md shadow-sm">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className="relative block w-full px-3 py-2 mt-1 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="relative block w-full px-3 py-2 mt-1 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
-          
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="relative flex justify-center w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md group hover:bg-blue-700 focus:outline-none"
-            >
-              {isLoading ? 'Processing...' : isSignUp ? 'Sign up' : 'Sign in'}
-            </button>
-          </div>
-          
-          <div className="text-center">
-            <button
-              type="button"
-              className="text-sm text-blue-600 hover:text-blue-800"
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                setError('');
-                setMessage('');
-              }}
-            >
-              {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
-            </button>
-          </div>
-        </form>
+        {renderAuthView()}
       </div>
     </div>
   );

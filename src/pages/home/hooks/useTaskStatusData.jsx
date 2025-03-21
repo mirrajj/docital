@@ -14,15 +14,17 @@ const useTaskStatusData = () => {
   useEffect(() => {
     const fetchTaskData = async () => {
       try {
-        // Fetch all tasks from the 'task' table
+        // Fetch all active, non-deleted tasks with needed fields for status calculation
         const { data, error } = await supabase
-          .from('task')
-          .select('*');
+          .from('tasks')
+          .select('status, completion_window, active_at')
+          .eq('active', true)
+          .is('deleted_at', null);
 
         if (error) {
           throw error;
         }
-
+        
         // Initialize counters for the second use case
         const statusCounts = {
           pending: { count: 0 },
@@ -37,17 +39,49 @@ const useTaskStatusData = () => {
           overdue: 0,
         };
 
+        // Get current time
+        const currentTime = new Date();
+
         // Process each task
         data.forEach(task => {
+          // Directly use 'pending' and 'completed' statuses from the database
           if (task.status === 'pending') {
             statusCounts.pending.count += 1;
             chartCounts.pending += 1;
-          } else if (task.status === 'completed') {
+          } else if (task.status === 'completed' || task.status === 'skipped') {
             statusCounts.completed.count += 1;
             chartCounts.completed += 1;
-          } else if (task.status === 'overdue') {
-            statusCounts.overdue.count += 1;
-            chartCounts.overdue += 1;
+          } else {
+            // For other statuses, determine if the task is overdue
+            // by checking if current time exceeds active_at + completion_window
+            if (task.active_at && task.completion_window) {
+              const activeAtDate = new Date(task.active_at);
+              const completionWindowHours = parseInt(task.completion_window, 10);
+              
+              if (!isNaN(completionWindowHours)) {
+                // Calculate deadline by adding completion_window hours to active_at
+                const deadlineTime = new Date(activeAtDate);
+                deadlineTime.setHours(deadlineTime.getHours() + completionWindowHours);
+                
+                // Task is overdue if current time is past the deadline
+                if (currentTime > deadlineTime) {
+                  statusCounts.overdue.count += 1;
+                  chartCounts.overdue += 1;
+                } else {
+                  // If not overdue and not completed, count as pending
+                  statusCounts.pending.count += 1;
+                  chartCounts.pending += 1;
+                }
+              } else {
+                // If completion_window can't be parsed, treat as pending
+                statusCounts.pending.count += 1;
+                chartCounts.pending += 1;
+              }
+            } else {
+              // If missing active_at or completion_window, treat as pending
+              statusCounts.pending.count += 1;
+              chartCounts.pending += 1;
+            }
           }
         });
 

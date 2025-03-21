@@ -51,7 +51,7 @@ const getEventIcon = (type) => {
 
 const UpcomingEvents = () => {
   return (
-    <div className="w-1/2 flex h-16 items-center justify-between bg-white rounded-xl shadow-sm border relative">
+    <div className="w-full flex h-16 items-center justify-between bg-transparent rounded-xl border-x  relative">
       <div className="px-2 border-r h-4/5 flex items-center">
         <h3 className="text-xs text-green-500 font-medium">Upcoming Events</h3>
       </div>

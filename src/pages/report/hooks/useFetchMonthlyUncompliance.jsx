@@ -43,7 +43,7 @@ const useUncomplianceData = (selectedYear = new Date().getFullYear()) => {
           if (!dateCounts[date]) {
             dateCounts[date] = { date };
           }
-
+          
           // Initialize the department count if it doesn't exist
           if (!dateCounts[date][departmentName]) {
             dateCounts[date][departmentName] = 0;

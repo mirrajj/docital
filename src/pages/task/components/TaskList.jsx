@@ -1,5 +1,13 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import {
     Table,
     Header,
     HeaderRow,
@@ -10,8 +18,9 @@ import {
     useCustom,
 } from "@table-library/react-table-library/table";
 import { useTheme } from "@table-library/react-table-library/theme";
-import { MdEdit, MdDeleteOutline, MdArrowDropDown, MdArrowRight } from "react-icons/md";
-import { Edit,Trash2 } from 'lucide-react';
+import { MdArrowDropDown, MdArrowRight } from "react-icons/md";
+import { Button } from '@/components/ui/button';
+import { Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { format } from 'date-fns';
@@ -19,13 +28,13 @@ import TaskDetailsModal from './TaskDetails';
 import TaskSwitch from './TaskSwitch';
 import LoadingSpinner from './LoadingSpinner';
 
-const TaskList = ({ 
-    tasks, 
-    loading, 
-    error, 
-    onEdit, 
-    onDelete, 
-    onUpdateStatus, 
+const TaskList = ({
+    tasks,
+    loading,
+    error,
+    onEdit,
+    onDelete,
+    onUpdateStatus,
     onSearch,
     searchQuery,
     filterOptions,
@@ -77,7 +86,7 @@ const TaskList = ({
              border-bottom: 1px solid  #f5f5f5 ;
            `,
     };
-    
+
     const theme = useTheme(tableTheme);
 
     // Handle search input
@@ -90,33 +99,33 @@ const TaskList = ({
     // Filter data based on search and other filters
     const data = useMemo(() => {
         if (!tasks) return { nodes: [] };
-        
+
         return {
             nodes: tasks.filter((item) => {
                 // Search filter
-                const matchesSearch = 
+                const matchesSearch =
                     item.task_name?.toLowerCase().includes(search.toLowerCase()) ||
                     item.description?.toLowerCase().includes(search.toLowerCase()) ||
                     item.document_code?.toLowerCase().includes(search.toLowerCase());
-                
+
                 // Department filter
-                const matchesDepartment = !filterOptions.department || 
+                const matchesDepartment = !filterOptions.department ||
                     item.department_id === filterOptions.department;
-                
+
                 // Task type filter
-                const matchesTaskType = !filterOptions.taskType || 
+                const matchesTaskType = !filterOptions.taskType ||
                     item.task_type === filterOptions.taskType;
-                
+
                 // Status filter
-                const matchesStatus = !filterOptions.status || 
+                const matchesStatus = !filterOptions.status ||
                     item.status === filterOptions.status;
-                
+
                 // Priority filter
-                const matchesPriority = !filterOptions.priority || 
+                const matchesPriority = !filterOptions.priority ||
                     item.priority === filterOptions.priority;
-                
-                return matchesSearch && matchesDepartment && matchesTaskType && 
-                       matchesStatus && matchesPriority;
+
+                return matchesSearch && matchesDepartment && matchesTaskType &&
+                    matchesStatus && matchesPriority;
             }),
         };
     }, [tasks, search, filterOptions]);
@@ -136,7 +145,7 @@ const TaskList = ({
     const handleEditButtonClicked = useCallback((action, taskId) => {
         setEditLoading(true);
         setCurrentID(taskId);
-        
+
         // Simulate a small delay for better UX
         setTimeout(() => {
             setEditLoading(false);
@@ -154,7 +163,7 @@ const TaskList = ({
     // Confirm delete action
     const confirmDelete = useCallback(async () => {
         if (!taskToDelete) return;
-        
+
         try {
             await onDelete(taskToDelete);
             setShowConfirmModal(false);
@@ -181,7 +190,7 @@ const TaskList = ({
     const updateTaskStatus = useCallback(async (taskId, newStatus) => {
         setUpdateLoading(true);
         setCurrentID(taskId);
-        
+
         try {
             await onUpdateStatus(taskId, newStatus);
         } catch (error) {
@@ -226,28 +235,24 @@ const TaskList = ({
 
     return (
         <div className='container mx-auto p-2 pt-3 bg-transparent my-8 border-y border-gray'>
-            {showConfirmModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-                        <h3 className="text-lg font-semibold mb-4">Confirm Delete</h3>
-                        <p className="mb-6">Are you sure you want to delete this task? This action cannot be undone.</p>
-                        <div className="flex justify-end space-x-3">
-                            <button 
-                                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                                onClick={cancelDelete}
-                            >
-                                Cancel
-                            </button>
-                            <button 
-                                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                                onClick={confirmDelete}
-                            >
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Confirm Delete</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete this task? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={cancelDelete}>
+                            Cancel
+                        </Button>
+                        <Button variant="destructive" onClick={confirmDelete}>
+                            Delete
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             <div className="flex items-center justify-between mb-4">
                 <div className="flex-1">
@@ -262,8 +267,8 @@ const TaskList = ({
                         onChange={handleSearch}
                         className="max-w-xs"
                     />
-                    
-                    <Select 
+
+                    <Select
                         value={filterOptions.department}
                         onValueChange={(value) => onFilterChange('department', value)}
                     >
@@ -277,8 +282,8 @@ const TaskList = ({
                             <SelectItem value="dep2">Department 2</SelectItem>
                         </SelectContent>
                     </Select>
-                    
-                    <Select 
+
+                    <Select
                         value={filterOptions.taskType}
                         onValueChange={(value) => onFilterChange('taskType', value)}
                     >
@@ -335,14 +340,14 @@ const TaskList = ({
                                             </div>
                                         </Cell>
                                         <Cell>
-                                            <div className="cursor-pointer border rounded-2xl w-fit py-1 px-1 flex items-center gap-2">
+                                            <div className="cursor-pointer border rounded-2xl w-fit py-1 px-1 flex items-center gap-4 justify-around">
                                                 {(editLoading && currentID === item.id) ? (
                                                     <LoadingSpinner size={20} />
                                                 ) : (
                                                     <>
                                                         <span>
                                                             <Edit
-                                                                size="16"
+                                                                size="14"
                                                                 id="edit"
                                                                 color='#34a853'
                                                                 className='hover:opacity-50'
@@ -351,7 +356,7 @@ const TaskList = ({
                                                         </span>
                                                         <span>
                                                             <Trash2
-                                                                size="16"
+                                                                size="14"
                                                                 id="delete"
                                                                 color='crimson'
                                                                 className='hover:opacity-50'
@@ -378,8 +383,8 @@ const TaskList = ({
                                 <Row>
                                     <Cell colSpan={6}>
                                         <div className="flex justify-center items-center py-8 text-gray-500">
-                                            {search || Object.values(filterOptions).some(val => val !== '') ? 
-                                                'No tasks match the current filters' : 
+                                            {search || Object.values(filterOptions).some(val => val !== '') ?
+                                                'No tasks match the current filters' :
                                                 'No tasks found. Create a new task to get started.'}
                                         </div>
                                     </Cell>

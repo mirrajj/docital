@@ -49,29 +49,14 @@ const AuditDetails = ({ audit, colSpan }) => {
                     <FaFile size={16} className="text-gray-500 mt-0.5 mr-2 flex-shrink-0" />
                     <div className='flex gap-1'>
                       <span className="text-xs text-gray-600">Description:</span>
-                      <p className="text-sm font-medium">{audit.description || 'No description provided'}</p>
+                      <p className="text-xs font-medium">{audit.description || 'No description provided'}</p>
                     </div>
                   </div>
                 </li>
                 
-                {/* Notes (if available) */}
-                {audit.notes && (
-                  <li className="bg-gray-50 rounded-lg p-3 border border-gray-200 transition-all hover:shadow-sm">
-                    <div className="flex items-start">
-                      <FaFile size={16} className="text-gray-500 mt-0.5 mr-2 flex-shrink-0" />
-                      <div>
-                        <span className="text-xs text-gray-600">Notes:</span>
-                        <p className="text-sm font-medium">{audit.notes}</p>
-                      </div>
-                    </div>
-                  </li>
-                )}
+              
                 
-                {/* Department */}
-                <li className="bg-gray-50 rounded-lg p-3 border border-gray-200 transition-all hover:shadow-sm">
-                  <span className="text-xs text-gray-600">Department:</span>
-                  {/* <p className="text-sm font-medium">{audit.department || 'Not specified'}</p> */}
-                </li>
+              
                 
                 {/* Timeline */}
                 <li className="bg-gray-50 rounded-lg p-3 border border-gray-200 transition-all hover:shadow-sm">
@@ -96,31 +81,7 @@ const AuditDetails = ({ audit, colSpan }) => {
                   </div>
                 </li>
                 
-                {/* Findings */}
-                <li className="bg-gray-50 rounded-lg p-3 border border-gray-200 transition-all hover:shadow-sm">
-                  <span className="text-xs text-gray-600 mb-2 block">Findings:</span>
-                  {audit.findings && audit.findings.length > 0 ? (
-                    <div className="space-y-2 mt-2">
-                      {audit.findings.map((finding, index) => (
-                        <div key={index} className="bg-white p-2 rounded border border-gray-200 flex items-start">
-                          {finding.severity === 'high' ? (
-                            <FaAccessibleIcon size={16} className="text-red-500 mr-2 mt-0.5 flex-shrink-0" />
-                          ) : finding.severity === 'medium' ? (
-                            <FaAccessibleIcon size={16} className="text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
-                          ) : (
-                            <FaCheckCircle size={16} className="text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
-                          )}
-                          <div>
-                            <p className="text-sm font-medium">{finding.title}</p>
-                            <p className="text-xs text-gray-500">{finding.description}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-500 mt-1">No findings recorded</p>
-                  )}
-                </li>
+                
               </ul>
             </div>
           </div>

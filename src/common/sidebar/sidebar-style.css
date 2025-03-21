@@ -1,6 +1,7 @@
 .scroll-area{
     flex-grow : 1;
     height : 100%;
+    padding-top: 10px;
     overflow-y: auto;
     overflow-x: hidden;
     border-top : 1px solid rgb(229, 224, 224);

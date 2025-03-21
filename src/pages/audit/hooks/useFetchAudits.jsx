@@ -14,7 +14,8 @@ const useFetchAudits = (pageSize = 10, filters = {}) => {
         // Start building the query
         let query = supabase
           .from('audit')
-          .select('*, department:department_id(name)');
+          .select('*, department:department_id(name)')
+          .is('deleted_at',null);
         
         // Apply filters
         
@@ -28,6 +29,7 @@ const useFetchAudits = (pageSize = 10, filters = {}) => {
                 .from('audit')
                 .select('*, department:department_id(name)')
                 .eq('department.name', filters.department);
+                
         }
         
         if (filters.dateFrom) {
@@ -42,6 +44,7 @@ const useFetchAudits = (pageSize = 10, filters = {}) => {
          const { count, error: countError } = await supabase
         .from('audit')
         .select('*', { count: 'exact', head: true });
+        // .is('deleted_at',null);
         setTotalCount(count);
         
         // Then get paginated data

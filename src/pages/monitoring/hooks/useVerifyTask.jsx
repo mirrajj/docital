@@ -8,7 +8,7 @@ const useVerifyTask = () => {
   const verifyTaskCompletion = async (completionId, userId,setShowSuccess,setShowError) => {
     setLoading(true);
     setError(null);
-console.log(completionId);
+
 
     try {
       // Update the `verified` and `verified_by` columns in the `task_completion` table

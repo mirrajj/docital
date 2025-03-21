@@ -11,15 +11,12 @@ const useDailyTaskData = () => {
             try {
                 // Fetch data from task_completion, joined with task and department
                 const { data, error } = await supabase
-                    .from('task_completion')
+                    .from('tasks')
                     .select(`
-                        task_id,
+                        id,
                         completed_at,
-                        task:task_id (
-                            department_id,
-                            department:department_id (
-                                name
-                            )
+                        task : department_id (
+                        name)
                         )
                      `)
                     .gte('completed_at', new Date().toISOString().split('T')[0]) // Today's data only
@@ -28,6 +25,7 @@ const useDailyTaskData = () => {
                 if (error) {
                     throw error;
                 }
+                console.log(data);
 
                 // Initialize hourly data structure
                 const hours = [
@@ -46,12 +44,16 @@ const useDailyTaskData = () => {
                 hours.forEach(hour => {
                     hourlyCounts[hour] = {
                         hour: hour,
-                        cleaning: 0,
+                        quality: 0,
                         processing: 0,
                         drying: 0,
                         finished: 0,
                         raw: 0,
                         general: 0,
+                        finance:0,
+                        human : 0,
+                        security : 0,
+                        procurement : 0,
                     };
                 });
                 
@@ -69,7 +71,7 @@ const useDailyTaskData = () => {
                         hourLabel = hours[(hour - 8) + 1]; // Map hour (8-17) to '8 AM' - '5 PM'
                     }
                     
-                    const department = taskCompletion.task.department.name.toLowerCase().split(' ')[0];
+                    const department = taskCompletion.task.name.toLowerCase().split(' ')[0];
                    
 
                     // Increment the count for the corresponding hour and department

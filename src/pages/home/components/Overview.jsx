@@ -113,9 +113,10 @@ const TaskCompletionOverview = () => {
                                             <tspan
                                                 x={viewBox.cx}
                                                 y={(viewBox.cy || 0) + 24}
-                                                className="fill-muted-foreground"
+                                                className="fill-muted-foreground text-xs font-semibold"
                                             >
-                                                Completion Rate
+                                                Conformance
+                                                Rate
                                             </tspan>
                                         </text>
                                     )
@@ -155,7 +156,7 @@ const TaskCompletionOverview = () => {
     return (
         <Card className="flex flex-col h-full">
             <CardHeader className="items-center pb-0">
-                <CardTitle>Task Completion Overview</CardTitle>
+                <CardTitle>Conformance Overview</CardTitle>
                 <CardDescription>Current status of all tasks</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 pb-0">

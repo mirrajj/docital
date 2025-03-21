@@ -5,6 +5,7 @@ import useFetchTaskCompletions from '../hooks/useFetchTaskCompletions';
 import { MdArrowRight, MdArrowDropDown } from 'react-icons/md';
 import MonitoringDetailsModal from './MonitoringDetailsModal';
 import { format } from 'date-fns';
+import { useAuth } from '@/pages/auth/authContext/AuthContext';
 
 import {
     Table,
@@ -22,6 +23,7 @@ import {
     SortToggleType,
 } from "@table-library/react-table-library/sort";
 import useVerifyTask from '../hooks/useVerifyTask';
+import useRejectTask from '../hooks/useRejectTask';
 
 
 const MonitoringList = ({ setShowError, setShowSuccess }) => {
@@ -30,19 +32,20 @@ const MonitoringList = ({ setShowError, setShowSuccess }) => {
     const [taskName, setTaskName] = useState([]);
     const [pendingTaskName, setPendingTaskName] = useState([]);
     const [currentTaskID, setCurrentTaskID] = useState(null);
-    const [userID, setUserID] = useState(null); //for capturing the id of the user who verified the task
+    const { currentUser } = useAuth();
+
 
     // Destructure both completions and pendingTasks from the hook
     const { completions, pendingTasks, loading, error, refetch } = useFetchTaskCompletions();
     const { verifyTaskCompletion, loading: verifyLoading, error: verifyError } = useVerifyTask();
+    const { rejectTaskCompletion, loading: rejectLoading, error: rejectError } = useRejectTask();
+
 
     useEffect(() => {
-        console.log("inside useEffect for completions");
         setNodes(completions);
     }, [completions]);
 
     useEffect(() => {
-        console.log("inside useEffect for pending tasks");
         setPendingNodes(pendingTasks);
     }, [pendingTasks]);
 
@@ -134,7 +137,15 @@ const MonitoringList = ({ setShowError, setShowSuccess }) => {
     };
 
     const handleVerifyTask = async (taskID) => {
-        const response = await verifyTaskCompletion(taskID, userID, setShowSuccess, setShowError);
+        const response = await verifyTaskCompletion(taskID, currentUser.id, setShowSuccess, setShowError);
+        return response;
+    };
+
+    const handleRejectTask = async (taskID) => {
+        const response = await rejectTaskCompletion(taskID, setShowSuccess, setShowError);
+        // if (response.success) {
+        //     refetch();
+        // }
         return response;
     };
 
@@ -182,6 +193,7 @@ const MonitoringList = ({ setShowError, setShowSuccess }) => {
                     <p>Error loading ongoing tasks. Please try again.</p>
                 </div>
             ) : nodes && nodes.length > 0 ? (
+
                 <Table data={data} sort={sort} theme={theme}>
                     {(tableList) => (
                         <>
@@ -190,13 +202,13 @@ const MonitoringList = ({ setShowError, setShowSuccess }) => {
                                     <HeaderCellSort sortKey="DATE">Date</HeaderCellSort>
                                     <HeaderCellSort sortKey="NAME">Name</HeaderCellSort>
                                     <HeaderCellSort sortKey="DEPARTMENT">Department</HeaderCellSort>
-                                    <HeaderCell sortkey="VERIFY">Verify</HeaderCell>
+                                    <HeaderCell sortkey="VERIFY">Actions</HeaderCell>
                                 </HeaderRow>
                             </Header>
 
                             <Body>
                                 {tableList.map((item, index) => (
-                                    <React.Fragment key={index}>
+                                    <React.Fragment key={item.id}>
                                         <Row>
                                             <Cell>{formatValue(item.active_at)}</Cell>
                                             <Cell>
@@ -212,6 +224,19 @@ const MonitoringList = ({ setShowError, setShowSuccess }) => {
                                                             checked={item.verified ? item.verified : false}
                                                             isDisabled={item.verification_status === "verified" ? true : false}
                                                         />
+                                                    </span>
+                                                    {/* Add Reject Button */}
+                                                    <span className="cursor-pointer">
+                                                        <button
+                                                            onClick={() => handleRejectTask(item.id)}
+                                                            disabled={item.verification_status === "verified" || rejectLoading}
+                                                            className="p-1 bg-white text-red-500 border-2 border-red-500 rounded-full hover:bg-red-50 transition-colors"
+                                                            title="Reject Task"
+                                                        >
+                                                            <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                            </svg>
+                                                        </button>
                                                     </span>
                                                     <span onClick={() => handleExpand(item)} className="cursor-pointer">
                                                         {taskName.includes(item.task_name) ? (

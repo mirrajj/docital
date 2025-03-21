@@ -1,221 +1,135 @@
-import React, { useState, useRef } from 'react';
-import useFetchRecords from '../hooks/useFetchRecords';
-import DynamicTable from './DynamicTable';
-import RecordsHeader from './RecordsHeader';
-import {jsPDF}from 'jspdf';
-import html2canvas from 'html2canvas';
-import AppAlert from '../../../common/AppAlert';
+import React from "react";
+import { format } from "date-fns";
 
-
-const RecordList = () => {
-    
-    const [showError, setShowError] = useState({state: false, message : ""});
-    const [data, setData] = useState({nodes : []});
-    const [columns,setColumns] = useState([]);
-    const [skeletonColumns,setSkeletonColumns] = useState([1,2,3,4,5]);
-    // State to store current user selections
-    const [currentTable, setCurrentTable] = useState(null);
-    const [currentFilterField, setCurrentFilterField] = useState(null);
-    const [currentFilterValue, setCurrentFilterValue] = useState(null);
-
-    const {loading, error, fetchData} = useFetchRecords(setShowError);
-
-    // Pagination state
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(10); // Default limit
-    
-    // const LIMIT = 2;
-
-    const tableRef = useRef(null);
-
-      // Function to handle PDF download
-    const handleDownloadPdf = async () => {
-        const tableElement = tableRef.current;
-
-        // Use html2canvas to capture the table as an image
-        const canvas = await html2canvas(tableElement);
-
-        // Convert the canvas to a data URL
-        const imgData = canvas.toDataURL("image/png");
-
-        // Create a new PDF instance
-        const pdf = new jsPDF("p", "mm", "a4"); // Portrait, millimeters, A4 size
-
-        // Get the dimensions of the PDF page
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        // pdf.text("Table Report", pdfWidth / 2, 10, { align: "center" });
-
-        // Get the dimensions of the captured image
-        const imgWidth = canvas.width;
-        const imgHeight = canvas.height;
-
-        // Calculate the aspect ratio of the image
-        const ratio = imgWidth / imgHeight;
-
-        // Fit the image within the PDF page
-        let imgFinalWidth = pdfWidth;
-        let imgFinalHeight = pdfWidth / ratio;
-
-        if (imgFinalHeight > pdfHeight) {
-            imgFinalHeight = pdfHeight;
-            imgFinalWidth = pdfHeight * ratio;
-        }
-
-        // Add the image to the PDF
-        pdf.addImage(imgData, "PNG", 0, 0, imgFinalWidth, imgFinalHeight);
-
-        // Save the PDF
-        pdf.save("table.pdf");
-    };
-
-    const filterColumns = (columns) => {
-        const filteredColumns = columns.filter((column) => !column.includes("ID"));
-        return filteredColumns;
+const RecordList = ({ historyData }) => {
+  // Format date strings for display
+  const formatDate = (dateString) => {
+    if (!dateString) return "—";
+    try {
+      return format(new Date(dateString), "MMM d, yyyy h:mm a");
+    } catch (e) {
+      return dateString;
     }
-    function formatText(str) {
-        return str.includes('_') ? str.replace(/_/g, ' ').toUpperCase() : str.toUpperCase();
+  };
+
+  // Format data fields as a structured list
+  const formatDataFields = (data) => {
+    if (!data || !data.responseField || data.responseField.length === 0) {
+      return null;
     }
-    
-    const flattenData = (data) => {
-        return data.map((item) => {
-            const flattened = {};
-            Object.keys(item).forEach((key) => {
-                if (typeof item[key] === 'object' && item[key] !== null) {
-                    Object.keys(item[key]).forEach((nestedKey) => {
-                        const formattedKey = formatText(key);
-                        flattened[formattedKey] = item[key][nestedKey]; //flattens the nested object but returns just the parent columns' key instead of concating with the nested key
-                    });
-                } else {
-                    const formattedKey = formatText(key);
-                    flattened[formattedKey] = item[key];
-                }
-            });
-            // console.log(flattened);
-            return flattened;
-        });
-    };
-
-       // Handle category change
-    const handleCategoryChange = async (category,filterField,filterValue,start_date,end_date) => {
-        // Update current selections
-        setCurrentTable(category);
-        setCurrentFilterField(filterField);
-        setCurrentFilterValue(filterValue);
-
-        // Reset to the first page when the category changes
-        setCurrentPage(1);
-
-       
-        const result = await fetchData(category,filterField ,filterValue,currentPage,itemsPerPage,start_date,end_date);
-        const flattenedData = flattenData(result ? result : []);
-        setData({nodes : flattenedData || []});
-
-        if (flattenedData.length > 0) {
-            const columns  = Object.keys(flattenedData[0]) || [];
-            const filteredColumns = filterColumns(columns);
-            setColumns(filteredColumns);
-        }
-
-    };
-
-    const onPaginationChange = async  (newPage) =>  {
-        setCurrentPage(newPage);
-        const result = await fetchData(currentTable,currentFilterField ,currentFilterValue,newPage,itemsPerPage);
-        const flattenedData = flattenData(result ? result : []);
-        setData({nodes : flattenedData || []});
-    }
-    
 
     return (
-        <>
-        
-            {showError.state && (
-                <AppAlert
-                    type="error"
-                    message={showError.message}
-                    onClose={() => setShowError(false)}
-                />
-            )}
-            <RecordsHeader onCategoryChange={handleCategoryChange} handleDownloadPdf={handleDownloadPdf} />
-            {
-                loading ? (
-                    
-                    <div className='w-full border rounded-lg overflow-hidden'>
-                        <table className='w-full'>
-                            <thead>
-                                <tr className='bg-gray-50 border-b'>
-                                    {skeletonColumns.map((column, index) => (
-                                        <th key={index} className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                                            {column.label || column.key}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {[...Array(5)].map((_, index) => (
-                                    <tr key={index}>
-                                        {skeletonColumns.map((column, colIndex) => (
-                                            <td key={colIndex} className='px-6 py-4 whitespace-nowrap'>
-                                                <div className='h-4 bg-gray-200 rounded animate-pulse'></div>
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                
-                ) : !data.nodes.length ? (
-                    <div className='w-full border rounded-lg overflow-hidden'>
-                        <table className='w-full'>
-                            <thead>
-                                <tr className='bg-gray-50 border-b'>
-                                    {columns.map((column, index) => (
-                                        <th key={index} className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                                            {column.label || column.key}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td colSpan={columns.length} className='px-6 py-12 text-center text-gray-500 border-b'>
-                                        <div className='flex flex-col items-center justify-center'>
-                                            <svg className='w-12 h-12 text-gray-300 mb-3' fill='none' stroke='currentColor' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
-                                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' />
-                                            </svg>
-                                            <p className='text-sm font-medium'>No data available</p>
-                                            <p className='text-xs text-gray-400 mt-1'>There are currently no records to display</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                ) : (
-                    <DynamicTable data={data.nodes} columns={columns} tableRef={tableRef} title={currentTable} />
-                )
-            }
-            {/* Pagination Controls */}
-            <div className="border px-4 py-2 w-fit rounded-lg flex gap-4 text-xs font-semibold text-gray-500">
-                <button
-                    onClick={() => onPaginationChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                >
-                    Prev
-                </button>
-                <span className='border-x px-2'>Page {currentPage}</span>
-                <button
-                    onClick={() => onPaginationChange(currentPage + 1)}
-                    disabled={data.nodes.length < itemsPerPage} // Disable if fewer items are returned than the limit
-                >
-                    Next
-                </button>
-            </div>
-
-        </>
+      <div className="flex flex-col divide-y divide-gray-200 w-full">
+        {data.responseField.map((field, index) => (
+          <div key={index} className="py-1.5 flex justify-between text-xs">
+            <span className="text-gray-600">{field.name}</span>
+            <span className="text-gray-900 font-medium">{field.response}</span>
+          </div>
+        ))}
+      </div>
     );
-}
+  };
+
+  return (
+    <>
+      <div className="mb-4 flex items-center justify-between">
+        
+          <div className="mr-4 w-12 h-12">
+            {/* Logo placeholder - replace with your actual logo */}
+            <div className="w-full h-full rounded flex items-center justify-center text-gray-500 text-xs">
+              <img src="/images/groital-company-limited-logo.png" />
+            </div>
+          </div>
+          <div className="flex-grow">
+            <h2 className="text-lg font-bold text-gray-500 tracking-wider">Record History</h2>
+            <p className="text-sm text-gray-500">Detailed view of all task records and collected data</p>
+          </div>
+  
+      </div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-300 border-collapse border border-gray-300 rounded-lg text-xs">
+          <thead className="bg-gray-200">
+            <tr>
+              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border border-gray-300">
+                Date
+              </th>
+              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border border-gray-300">
+                Completed By
+              </th>
+              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border border-gray-300">
+                Completed At
+              </th>
+              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border border-gray-300">
+                Verified By
+              </th>
+              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border border-gray-300">
+                Verified At
+              </th>
+              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border border-gray-300">
+                Status
+              </th>
+              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border border-gray-300">
+                Data Collection Details
+              </th>
+            </tr>
+          </thead>
+
+          <tbody className="bg-white divide-y divide-gray-300">
+            {historyData.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-3 py-2 text-center text-xs text-gray-500 border border-gray-300">
+                  No records found
+                </td>
+              </tr>
+            ) : (
+              historyData.map((record, index) => (
+                <tr key={record.id || index} className="bg-white">
+                  <td className="px-3 py-2 align-top text-xs text-gray-900 border border-gray-300">
+                    {formatDate(record.date)}
+                  </td>
+                  <td className="px-3 py-2 align-top text-xs text-gray-500 border border-gray-300">
+                    {record.completedBy}
+                  </td>
+                  <td className="px-3 py-2 align-top text-xs text-gray-500 border border-gray-300">
+                    {formatDate(record.completedAt)}
+                  </td>
+                  <td className="px-3 py-2 align-top text-xs text-gray-500 border border-gray-300">
+                    {record.verifiedBy}
+                  </td>
+                  <td className="px-3 py-2 align-top text-xs text-gray-500 border border-gray-300">
+                    {formatDate(record.verifiedAt)}
+                  </td>
+                  <td className="px-3 py-2 align-top text-xs border border-gray-300">
+                    <span className={`px-1.5 py-0.5 inline-flex text-xs leading-4 font-medium rounded-full 
+                      ${record.verificationStatus === 'verified' ? 'bg-green-100 text-green-800' :
+                        record.verificationStatus === 'not_verified' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'}`}>
+                      {record.verificationStatus || "—"}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2 align-top text-xs border border-gray-300">
+                    <div className="bg-white w-full">
+                      {record.data ?
+                        formatDataFields(record.data) :
+                        <span className="text-gray-500">No data available</span>
+                      }
+                      {record.notes && (
+                        <div className="mt-2 pt-2 border-t border-gray-200">
+                          <span className="text-gray-600 font-medium text-xs">Notes:</span>
+                          <div className="mt-1 text-xs text-gray-900">{record.notes}</div>
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </>
+    
+  );
+};
 
 export default RecordList;

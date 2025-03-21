@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Switch } from '@/components/ui/switch';
 
 const TaskSwitch = ({ itemID, item, updateTaskStatus, setShowError, setShowSuccess }) => {
+    
     const [isActive, setIsActive] = useState(item.active);
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -34,10 +35,11 @@ const TaskSwitch = ({ itemID, item, updateTaskStatus, setShowError, setShowSucce
                 onCheckedChange={handleToggle}
                 disabled={isProcessing}
                 className={isProcessing ? 'opacity-50' : ''}
+                size={16}
             />
             <label 
                 htmlFor={`switch-${itemID}`}
-                className="text-sm font-medium cursor-pointer select-none"
+                className="text-xs font-medium cursor-pointer select-none"
             >
                 {isActive ? 'Active' : 'Inactive'}
             </label>

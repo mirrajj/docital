@@ -46,7 +46,7 @@ const DynamicTable = ({ data, columns, tableRef, title, companyName = "GROITAL" 
           <div className="text-center">
             <h1 className="text-xl font-semibold text-gray-500 tracking-widest">{title.replace(/_/g,' ')} records</h1>
           </div>
-          
+        
           {/* Empty div for balance */}
           <div className="w-24"></div>
         </div>

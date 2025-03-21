@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom'; // Assuming you're using React Router
 
 const Task = () => {
-    // Parent component states
+    const [formLoading, setFormLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
     const [showError, setShowError] = useState({ state: false, message: '' });
@@ -52,6 +52,7 @@ const Task = () => {
 
     // Handlers and other functions
     const handleCreateNew = () => {
+        setActiveTab('tasks');
         if (!hasTemplates) {
             setShowError({
                 state: true,
@@ -75,6 +76,11 @@ const Task = () => {
         const taskToEdit = tasks.find(task => task.id === taskId);
         setEditingTask(taskToEdit);
         setShowForm(true);
+
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
     };
 
     const handleDeleteTask = async (taskId) => {
@@ -93,6 +99,7 @@ const Task = () => {
     };
 
     const handleTaskSubmit = async (taskData) => {
+        setFormLoading(true);
         try {
             if (editingTask) {
                 await updateTask(editingTask.id, taskData);
@@ -114,6 +121,8 @@ const Task = () => {
                 state: true,
                 message: `Failed to ${editingTask ? 'update' : 'create'} task: ${error.message}`
             });
+        } finally {
+            setFormLoading(false);
         }
     };
 
@@ -121,6 +130,10 @@ const Task = () => {
         setShowForm(false);
         setEditingTask(null);
     };
+
+    const handleCancelTemplate = () => {
+        setActiveTab('');
+    }
 
     const handleUpdateStatus = async (taskId, newStatus) => {
         try {
@@ -167,7 +180,7 @@ const Task = () => {
             )}
             
             <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold">Task Administration</h1>
+                
                 <div className="flex space-x-2">
                     <Button 
                         onClick={handleManageTemplates} 
@@ -193,14 +206,23 @@ const Task = () => {
                 </div>
             )}
             
-            {showForm && 
+            {showForm && activeTab === 'tasks' && 
                 <TaskForm
                     onSubmit={handleTaskSubmit}
                     onCancel={handleCancelForm}
                     task={editingTask}
                     templates={templates}
+                    loading={formLoading}
                 />
             }
+              {/* Task Template Manager */}
+              {activeTab === 'templates' && (
+                <TaskTemplateManager
+                    onCancel={handleCancelTemplate}
+                    // fetchTemplates={fetchTemplates}
+                    // setShowError={setShowError}
+                    // setShowSuccess={setShowSuccess}
+                />)}
 
             <TaskList
                 tasks={tasks}
@@ -217,15 +239,7 @@ const Task = () => {
                 setShowSuccess={setShowSuccess}
             />
                 
-                {/* Task Template Manager */}
-             {activeTab === 'templates' && (
-
-                <TaskTemplateManager
-                    // templates={templates}
-                    // fetchTemplates={fetchTemplates}
-                    // setShowError={setShowError}
-                    // setShowSuccess={setShowSuccess}
-                />)}
+              
 
         </>
     );

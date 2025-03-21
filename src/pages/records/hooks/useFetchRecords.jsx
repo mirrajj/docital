@@ -1,5 +1,5 @@
 import { useState } from "react";
-import supabase from "../../../config/supabaseClient";
+import supabase from "@/config/supabaseClient";
 
 const useFetchRecords = (setShowError) => {
     const [loading, setLoading] = useState(false);
@@ -10,7 +10,6 @@ const useFetchRecords = (setShowError) => {
         // console.log("inside fetch data");
         setLoading(true);
         setError(null);
-
 
         try {
             const offset = (page - 1) * limit;

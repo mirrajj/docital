@@ -37,21 +37,6 @@ const useFetchTaskData = () => {
       
           if (completionError) throw completionError;
       
-          // Format uncompliance data for the chart
-        //   const formattedUncomplianceData = uncomplianceData.map((item) => ({
-        //     date: new Date(item.created_at).toLocaleDateString(), // Format date
-        //     department: item.task.department.name,
-        //     count: 1, // Each row represents one uncompliance
-        //     type: 'Uncompliance', // Label for the chart
-        //   }));
-      
-          // Format task completion data for the chart
-        //   const formattedCompletionData = completionData.map((item) => ({
-        //     date: new Date(item.completion_time).toLocaleDateString(), // Format date
-        //     department: item.task.department.name,
-        //     count: 1, // Each row represents one completed task
-        //     type: 'Completion', // Label for the chart
-        //   }));
       
           // Combine the data for the grouped bar chart
           const combinedData = {uncomplianceData,completionData}

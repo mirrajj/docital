@@ -28,6 +28,7 @@ const ReportHeader = ({ setFilters }) => {
             default: return 'Last 7 Days';
         }
     };
+
     
     const getDepartmentText = () => {
         switch(department) {

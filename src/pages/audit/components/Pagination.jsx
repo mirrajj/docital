@@ -3,6 +3,7 @@ import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   return (
     <div className="flex items-center justify-center gap-4 py-4">
+
       <button 
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 0}
@@ -14,6 +15,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         }`}
       >
         <FiChevronLeft size={18} />
+        
       </button>
       
       <span className="text-sm font-medium text-gray-700">

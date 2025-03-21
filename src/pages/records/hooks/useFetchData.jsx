@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import supabase from "../../../config/supabaseClient";
 
-
 const useFetchData = (setShowError,retryCount) => {
   const [departments, setDepartments] = useState([]);
   const [tasks, setTasks] = useState([]);
@@ -10,7 +9,7 @@ const useFetchData = (setShowError,retryCount) => {
 
   useEffect(() => {
     const fetchData = async () => {
-       console.log("fetching") 
+      
       try {
         // Fetch departments
         const { data: departmentsData, error: departmentsError } = await supabase
@@ -21,7 +20,7 @@ const useFetchData = (setShowError,retryCount) => {
 
         // Fetch tasks
         const { data: tasksData, error: tasksError } = await supabase
-          .from("task") // Replace with your tasks table name
+          .from("tasks") // Replace with your tasks table name
           .select("*");
 
         if (tasksError) throw tasksError;

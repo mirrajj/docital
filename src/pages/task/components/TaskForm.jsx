@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+// import { useAuth } from '@/pages/auth/authContext/AuthContext';
 import {
     Dialog,
     DialogContent,
@@ -20,10 +21,11 @@ import useGetDepartments from '../hooks/useGetDepartments';
 import useGetTemplateFields from '../hooks/useGetTemplateFields';
 import useGetTasks from '../hooks/useGetTasks';
 
-const TaskForm = ({ onSubmit, onCancel, task, templates }) => {
+const TaskForm = ({ onSubmit, onCancel, task, templates, loading }) => {
     const { departments, loading: loadingDepartments } = useGetDepartments();
     const { tasks, loading: loadingTasks } = useGetTasks();
     const [selectedTemplate, setSelectedTemplate] = useState(null);
+    // const { currentUser } = useAuth();
 
     // Initialize form state
     const [formData, setFormData] = useState({
@@ -35,10 +37,11 @@ const TaskForm = ({ onSubmit, onCancel, task, templates }) => {
         status: 'pending',
         frequency: 'once',
         priority: 'medium',
-        deadline: new Date().toISOString(),
+        completion_window: new Date().toISOString(),
         active: true,
         department_id: '',
-        skippable: false // New field for skippable feature
+        skippable: false,// New field for skippable feature
+        // created_by : currentUser.id
     });
 
     // Modal states
@@ -60,7 +63,7 @@ const TaskForm = ({ onSubmit, onCancel, task, templates }) => {
                 status: task.status || 'pending',
                 frequency: task.frequency || 'once',
                 priority: task.priority || 'medium',
-                deadline: task.deadline || new Date().toISOString(),
+                completion_window: task.completion_window || new Date().toISOString(),
                 active: task.active !== undefined ? task.active : true,
                 department_id: task.department_id || '',
                 skippable: task.skippable || false // Initialize skippable field
@@ -174,6 +177,7 @@ const TaskForm = ({ onSubmit, onCancel, task, templates }) => {
                                     name="task_name"
                                     value={formData.task_name}
                                     onChange={handleInputChange}
+                                    disabled={task !== null ? true : false}
                                     required
                                 />
                             </div>
@@ -185,6 +189,7 @@ const TaskForm = ({ onSubmit, onCancel, task, templates }) => {
                                     name="department_id"
                                     value={formData.department_id}
                                     onValueChange={(value) => handleSelectChange('department_id', value)}
+                                    disabled={task !== null ? true : false}
                                     required
                                 >
                                     <SelectTrigger>
@@ -192,8 +197,8 @@ const TaskForm = ({ onSubmit, onCancel, task, templates }) => {
                                     </SelectTrigger>
                                     <SelectContent>
                                         {!loadingDepartments && departments && departments.map(dept => (
-                                            <SelectItem key={dept.id} value={dept.department_id}>
-                                                {dept.name}
+                                            <SelectItem key={dept.department_id} value={dept.department_id}>
+                                                {dept.name.toUpperCase()}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -271,6 +276,28 @@ const TaskForm = ({ onSubmit, onCancel, task, templates }) => {
                                         <SelectItem value="monthly">Monthly</SelectItem>
                                         <SelectItem value="quarterly">Quarterly</SelectItem>
                                         <SelectItem value="yearly">Yearly</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Completion window */}
+                            <div>
+                                <Label htmlFor="completion_window">Completion window</Label>
+                                <Select
+                                    name="completion_window"
+                                    value={formData.completion_window}
+                                    onValueChange={(value) => handleSelectChange('completion_window', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select completion_window" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="1 hour">1 hour</SelectItem>
+                                        <SelectItem value="2 hour">2 hours</SelectItem>
+                                        <SelectItem value="3 hour">3 hours</SelectItem>
+                                        <SelectItem value="4 hour">4 hours</SelectItem>
+                                        <SelectItem value="5 hour">5 hours</SelectItem>
+                                        <SelectItem value="6 hour">6 hours</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -369,11 +396,24 @@ const TaskForm = ({ onSubmit, onCancel, task, templates }) => {
                     </form>
                 </CardContent>
                 <CardFooter className="flex justify-end space-x-2">
-                    <Button variant="outline" onClick={handleCancelClick}>
+                    <Button variant="outline" onClick={handleCancelClick} disabled={loading}>
                         Cancel
                     </Button>
-                    <Button type="submit" onClick={handleSubmitClick}>
-                        {task ? 'Update Task' : 'Create Task'}
+                    <Button type="submit" onClick={handleSubmitClick} disabled={loading}>
+                        {loading ? (
+                            <>
+                                <span className="mr-2">
+                                    {/* You can use a simple spinner or import the LoadingSpinner component */}
+                                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </span>
+                                {task ? 'Updating...' : 'Creating...'}
+                            </>
+                        ) : (
+                            task ? 'Update Task' : 'Create Task'
+                        )}
                     </Button>
                 </CardFooter>
             </Card>

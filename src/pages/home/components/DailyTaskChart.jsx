@@ -24,8 +24,8 @@ const chartConfig = {
   tasks: {
     label: "Tasks Completed",
   },
-  cleaning: {
-    label: "Cleaning",
+  quality: {
+    label: "Quality",
     color: "hsl(var(--chart-1))",
   },
   processing: {
@@ -47,46 +47,70 @@ const chartConfig = {
   general: {
     label: "General Office",
     color: "hsl(var(--chart-6))",
+  },
+  finance: {
+    label: "Finance",
+    color: "hsl(var(--chart-7))",
+  },
+  human: {
+    label: "Human Resources",
+    color: "hsl(var(--chart-8))",
+  },
+  security: {
+    label: "Security",
+    color: "hsl(var(--chart-9))",
+  },
+  procurement: {
+    label: "Procurement",
+    color: "hsl(var(--chart-10))",
   }
 };
 
 const DailyTaskChart = () => {
   const {hourlyData, loading, error} = useDailyTaskData();
   
-  const [activeChart, setActiveChart] = useState("cleaning");
+  const [activeChart, setActiveChart] = useState("quality");
 
   const total = useMemo(() => {
     if (!hourlyData || hourlyData.length === 0) {
       return {
-        cleaning: 0,
+        quality: 0,
         processing: 0,
         drying: 0,
         finished: 0,
         raw: 0,
         general: 0,
+        finance: 0,
+        human: 0,
+        security: 0,
+        procurement: 0,
       };
     }
     
     return {
-      cleaning: hourlyData.reduce((acc, curr) => acc + (curr.cleaning || 0), 0),
+      quality: hourlyData.reduce((acc, curr) => acc + (curr.quality || 0), 0),
       processing: hourlyData.reduce((acc, curr) => acc + (curr.processing || 0), 0),
       drying: hourlyData.reduce((acc, curr) => acc + (curr.drying || 0), 0),
       finished: hourlyData.reduce((acc, curr) => acc + (curr.finished || 0), 0),
       raw: hourlyData.reduce((acc, curr) => acc + (curr.raw || 0), 0),
       general: hourlyData.reduce((acc, curr) => acc + (curr.general || 0), 0),
+      finance: hourlyData.reduce((acc, curr) => acc + (curr.finance || 0), 0),
+      human: hourlyData.reduce((acc, curr) => acc + (curr.human || 0), 0),
+      security: hourlyData.reduce((acc, curr) => acc + (curr.security || 0), 0),
+      procurement: hourlyData.reduce((acc, curr) => acc + (curr.procurement || 0), 0),
     };
   }, [hourlyData]);
 
   // Array of department keys for easy mapping
-  const departments = ["cleaning", "processing", "drying", "finished", "raw", "general"];
+  const departments = ["quality", "processing", "drying", "finished", "raw", "general", "finance", "human", "security", "procurement"];
 
   // Render loading skeleton
   const renderLoading = () => (
     <div className="px-2 sm:p-6">
       <div className="animate-pulse space-y-4">
         <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-        <div className="grid grid-cols-7 gap-4 mb-6">
-          {[...Array(7)].map((_, i) => (
+        <div className="grid grid-cols-10 gap-4 mb-6">
+          {[...Array(10)].map((_, i) => (
             <div key={i} className="h-4 bg-gray-200 rounded"></div>
           ))}
         </div>
@@ -123,6 +147,12 @@ const DailyTaskChart = () => {
     </div>
   );
 
+  // Create department tab groups for responsive layout
+  const departmentGroups = [
+    departments.slice(0, 5),  // First row
+    departments.slice(5, 10)  // Second row
+  ];
+
   return (
     <Card className="h-full">
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0">
@@ -133,8 +163,9 @@ const DailyTaskChart = () => {
           </CardDescription>
         </div>
         
-          <div className="grid grid-cols-3 sm:grid-cols-6">
-            {departments.map((key) => (
+        {departmentGroups.map((group, groupIndex) => (
+          <div key={groupIndex} className="grid grid-cols-5">
+            {group.map((key) => (
               <button
                 key={key}
                 data-active={activeChart === key}
@@ -150,7 +181,7 @@ const DailyTaskChart = () => {
               </button>
             ))}
           </div>
-        
+        ))}
       </CardHeader>
       
       <CardContent className="px-2 sm:p-6">

@@ -39,7 +39,7 @@ const useGetDepartments = () => {
         { 
           event: '*', 
           schema: 'public', 
-          table: 'departments' 
+          table: 'department' 
         }, 
         (payload) => {
           // Handle different types of changes

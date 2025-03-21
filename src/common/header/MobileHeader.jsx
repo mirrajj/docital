@@ -35,9 +35,10 @@ const MobileHeader = ({page}) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+  // console.log(currentUser.id);
 
   return (
-    <div className="w-full py-2 px-4 ml-2 border-b border-gray-300 bg-backgroundColor sticky top-0 z-20" ref={ref}>
+    <div className="w-full py-2 px-4   border-b border-gray-300 bg-backgroundColor sticky top-0 z-20" ref={ref}>
       <div className='container my-0 mx-auto flex justify-between'>
         <div className="hover:bg-gray-100 rounded-lg">
           <FaBars
